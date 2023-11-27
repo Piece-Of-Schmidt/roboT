@@ -113,9 +113,6 @@ for(k in K_WERTE){
   
 }
 
-# save everything
-save.image(paste0("analysis_", gsub(":","-",format(Sys.time(), "%X")), ".RData"))
-
 
 
 # -------------------------------------------------------------------------
@@ -142,3 +139,25 @@ topTextsPerUnit(corpus = corp, ldaresult = result_K8, ldaID = names(docs), unit 
 topWordsPerUnit(corpus = corp, ldaresult = result_K8, docs = docs, unit = "quarter", file = "TopWordsPerUnit")
 
 
+
+# -------------------------------------------------------------------------
+# R-Umgebung Speichern
+# -------------------------------------------------------------------------
+
+'
+Das Skript speichert bereits die wichtigsten Objekte.
+Es ist damit moeglich, an spaeterer und anderer Stelle mit den bisherigen Ergebnissen weiter zu arbeiten.
+Dafuer muessen lediglich die erforderlichen Objekte eingeladen werden. Je nach Funktion sind das
+- der Korpus ("corp")
+- der tokenisierte Korpus ("tokenizedCorpus")
+- das LDA-Ergebnis ("result_K8", "result_K20", etc.)
+- die numerische repraesentation des Korpus ("docs")
+- die ldaIDs ("ldaID" bzw. die Elementnamen der docs-Liste: "names(docs)")
+
+Um darueber hinaus die gesamte R-Umgebung zu speichern und "alles auf einmal" wieder einladen zu koennen, kann die folgende Funktion verwendet werden.
+Der Speichervorgang sowie das spaetere Einladen koennen jedoch sehr lange dauern.
+Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
+'
+
+# save everything
+save.image(paste0("analysis_", gsub(":","-",format(Sys.time(), "%X")), ".RData"))
