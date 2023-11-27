@@ -12,7 +12,7 @@ Das Skript ist so aufgebaut, dass es einige grundlegende Funktionalitaeten des t
 * bei Fragen melden Sie sich gerne bei Ihrem/Ihrer Betreuer:in
 
 ### Quelle
-*Koppers L, Rieger J, Boczek K, von Nordheim G (2021). tosca: Tools for Statistical Content Analysis. doi:10.5281/zenodo.3591068, R package version 0.3-2, https://github.com/Docma-TU/tosca.*<br><br>
+*Koppers L, Rieger J, Boczek K, von Nordheim G (2021). tosca: Tools for Statistical Content Analysis. doi:10.5281/zenodo.3591068, R package version 0.3-2, https://github.com/Docma-TU/tosca.*<br>
 Dokumentation: https://cran.r-project.org/web/packages/tosca/index.html
 
 
