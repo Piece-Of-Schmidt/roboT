@@ -55,8 +55,8 @@ corp = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T)
 # -> Wichtig: "ignore.case=T" transformiert alle Texte automatisch in Kleinbuchstaben. Wenn das vermieden werden soll, ist der folgende Code zu empfehlen:
 
 mask = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T, out="bin") # -> out="bin" gibt keinen Korpus, sondern einen booleschen Vektor zurueck
-texte_ueber_parteien_ids = names(corp$text)[mask]
-corp = filterID(corp, texte_ueber_parteien_ids)
+relevant_ids = names(corp$text)[mask]
+corp = filterID(corp, relevant_ids)
 
 # Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
 # Siehe Koppers et al. (2020) tosca Vignette
