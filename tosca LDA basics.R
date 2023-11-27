@@ -42,8 +42,8 @@ plotFreq(corp, wordlist = worte)
 corp = filterDate(corp, s.date="2010-01-01", e.date="2020-12-31")
 
 # Auf Grundlage des Vorkommens bestimmter Worte
-corp = filterWord(corp, "EZB") # -> Wichtig: per Default fuehrt die Funktion sog. Pattern Searches aus. D.h., es werden auch solche Dokumente gefunden, in denen "OEZBECK" vorkommt 
-corp = filterWord(corp, "\\bEZB\\b") # -> "\\b" stellt sicher, dass "EZB" zu beiden Seiten von einer Word Boundary (Leer- oder Satzzeichen) umgeben ist
+corp = filterWord(corp, "EZB") # -> Wichtig: per Default fuehrt die Funktion sog. Pattern Searches aus. D.h., es werden auch solche Dokumente gefunden, in denen (Beispiel hier) "OEZBECK" vorkommt 
+corp = filterWord(corp, "\\bEZB\\b") # -> Um das zu umgehen: "\\b" stellt sicher, dass "EZB" zu beiden Seiten von einer Word Boundary (Leer- oder Satzzeichen) umgeben ist
 
 # Die Funktion filterWord() versteht zu einem gewissen Teil regular expressions
 # Es sind also auch Ausdruecke wie der Folgende moeglich:
