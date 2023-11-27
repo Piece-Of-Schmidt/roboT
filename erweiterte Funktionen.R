@@ -3,17 +3,17 @@
 #'Generiert die Top-Texte (n=100) einer LDA und speichert sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch
 #'
 #'@param corpus Ausgangskorpus als meta-Datei. Sollte im Vorhinein um Duplikate bereinigt werden
-#'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
+#'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
 #'@param ldaID IDs von Texten, die beruecksichtigt werdeb sollen. Default: Alle Texte
 #'@param nTopTexts Menge an TopTexts, die generiert wird
 #'@param file Dateiname
 #'
-lda_getTopTexts = function(corpus, ldaResult, ldaID, nTopTexts=50, file="topTexts"){
+lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts"){
   
   corp=T
   if(!is.textmeta(corpus)){corpus = as.textmeta(corpus); corp=FALSE}
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(missing("corpus")|missing(ldaResult)) stop("Insert correct arguments for corpus and ldaResult")
+  if(missing("corpus")|missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
   if(!require("writexl", character.only = T, quietly = T)){
     install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
     if(install) install.packages("writexl") else break
@@ -23,11 +23,11 @@ lda_getTopTexts = function(corpus, ldaResult, ldaID, nTopTexts=50, file="topText
   require(tosca, quietly = T)
   
   # generate data frame of topTexts
-  tt = topTexts(ldaResult, ldaID, nTopTexts)
+  tt = topTexts(ldaresult, ldaID, nTopTexts)
   tt = showTexts(corpus, tt)
   
   # add share of most prominent topic per tt to data frame
-  docs_per_topic = ldaResult$document_sums/rowSums(ldaResult$document_sums)
+  docs_per_topic = ldaresult$document_sums/rowSums(ldaresult$document_sums)
   docs_per_topic = apply(docs_per_topic, 2, function(x) x/sum(x))
   proms = apply(docs_per_topic, 1, function(x) round(sort(x,decreasing = T)[1:nTopTexts],2))
   for(i in 1:length(tt)){tt[[i]][,"topic_relevance"] = proms[,i]; tt[[i]] = tt[[i]][,c(1,2,5,3,4)]}
@@ -50,11 +50,11 @@ lda_getTopTexts = function(corpus, ldaResult, ldaID, nTopTexts=50, file="topText
 #'
 #'Generiert ein Excel-Sheet mit den topwords einer LDA
 #'
-#'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
+#'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
 #'@param numWords Anzahl der topwords pro Topic
 #'@param file Dateiname, unter dem das Excel-Sheet gespeichert werden soll
 #'
-lda_getTopWords = function(ldaResult, numWords=50, file="topwords"){
+lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
   
   if(!require("writexl", character.only = T, quietly = T)){
     install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
@@ -63,8 +63,8 @@ lda_getTopWords = function(ldaResult, numWords=50, file="topwords"){
   require(tosca, quietly = T)
   require(writexl, quietly = T)
   
-  topwords = topWords(ldaResult$topics, numWords)
-  rel = round(rowSums(ldaResult$topics)/sum(ldaResult$topics),3)
+  topwords = topWords(ldaresult$topics, numWords)
+  rel = round(rowSums(ldaresult$topics)/sum(ldaresult$topics),3)
   topwords = as.data.frame(rbind(rel,topwords))
   colnames(topwords) = paste("Topic",1:ncol(topwords))
   rownames(topwords) = NULL
@@ -81,24 +81,24 @@ lda_getTopWords = function(ldaResult, numWords=50, file="topwords"){
 #'Errechnet die TopTexts pro Monat/Bimonth/Quartal/Halbjahr/Jahr basierend auf einem tosca-LDA-Objekt und speichert sie (falls gewuenscht) lokal
 #'
 #'@param corpus Textkorpus
-#'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
+#'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
 #'@param unit month, bimonth. quarter, halfyear oder year
 #'@param nTopTexts Anzahl der toptexte, die pro Topic und Periode generiert werden soll
 #'@param tnames (optional) desired topic names
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
-topTextsPerUnit = function(corpus, ldaResult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
+topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
   
-  if(missing("corpus") | missing(ldaResult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaResult and topic")
+  if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
   require(tosca, quietly = T)
   require(lubridate, quietly = T)
   
   # get params
-  K = nrow(ldaResult$topics)
+  K = nrow(ldaresult$topics)
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  doc = ldaResult$document_sums
+  doc = ldaresult$document_sums
   colnames(doc) = as.character(corpus$meta$date[match(ldaID,corpus$meta$id)])
-  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaResult$topics))
+  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaresult$topics))
   if(!is.null(foldername)) dir.create(foldername)
   
   # create date chunks
@@ -167,7 +167,7 @@ topTextsPerUnit = function(corpus, ldaResult, ldaID, unit="quarter", nTopTexts=2
 #'Erzeugt ein Objekt, dass die Topwords pro Monat/Bimonth/Quartal/Halbjahr/Jahr ausgibt
 #'
 #'@param corpus Textkorpus
-#'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
+#'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
 #'@param docs Objekt, das die Funktion LDAprep() generiert
 #'@param unit month, bimonth. quarter, halfyear oder year
 #'@param numWords Anzahl der topwords pro Topic
@@ -178,9 +178,9 @@ topTextsPerUnit = function(corpus, ldaResult, ldaID, unit="quarter", nTopTexts=2
 #'@param saveRAW Wenn TRUE werden die in der Analyse erzeugten Zwischenergebnisse ins Environment geladen
 #'@param file Dateiname, unter dem das Excel-Sheet gespeichert werden soll
 #'
-topWordsPerUnit = function(corpus, ldaResult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, s.date=NULL, e.date=NULL, saveRAW=F, file=NULL){
+topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, s.date=NULL, e.date=NULL, saveRAW=F, file=NULL){
   
-  if(missing("corpus") || missing("ldaResult") || missing("docs")) stop("Insert arguments for corpus, ldaResult, and docs")
+  if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
   
   if(!is.null(file) && !require("writexl", character.only = T, quietly = T)){
     install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
@@ -190,10 +190,10 @@ topWordsPerUnit = function(corpus, ldaResult, docs, unit="quarter", numWords=50,
   library(tosca)
   require(writexl, quietly = T)
   
-  K = nrow(ldaResult$topics)
-  assignments = ldaResult$assignments
-  vocab = colnames(ldaResult$topics)
-  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaResult$topics)) else tnames = tnames
+  K = nrow(ldaresult$topics)
+  assignments = ldaresult$assignments
+  vocab = colnames(ldaresult$topics)
+  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaresult$topics)) else tnames = tnames
   
   date_chunks = lubridate::floor_date(corpus$meta$date[match(names(docs), corpus$meta$id)], unit)
   chunks = unique(date_chunks); min = chunks[1]; max = tail(chunks,1)
