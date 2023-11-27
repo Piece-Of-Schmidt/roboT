@@ -298,7 +298,6 @@ progress.initialize = function(runner, track_time=F){
   invisible(TRUE)
 }
 
-# -------------------------------------------------------------------------
 
 #'progress.indicate
 #'
