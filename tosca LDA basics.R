@@ -42,17 +42,17 @@ plotFreq(corp, wordlist = worte)
 corp = filterDate(corp, s.date="2010-01-01", e.date="2020-12-31")
 
 # Auf Grundlage des Vorkommens bestimmter Worte
-ezb = filterWord(corp, "EZB")
+corp = filterWord(corp, "EZB")
 
 # -> die Funktion filterWord() versteht (zu einem gewissen Teil) regular expressions
 # Es sind also auch Ausdruecke wie der Folgende moeglich:
-texte_ueber_parteien = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T)
+corp = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T)
 
 # -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht", "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
 # -> ignore.case=T transformiert alle Texte automatisch in Kleinbuchstaben. Wenn du das umgehen willst, verwenden stattdessen den folgenden Code:
 texte_ueber_parteien_bool = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", out="bin")
 texte_ueber_parteien_ids = names(corp$text)[bool]
-texte_ueber_parteien = filterID(corp, texte_ueber_parteien_ids)
+corp = filterID(corp, texte_ueber_parteien_ids)
 
 
 
@@ -120,19 +120,19 @@ save.image(paste0("analysis_", gsub(":","-",format(Sys.time(), "%X")), ".RData")
 
 
 # Beispiel: PlotTopic:
-plotTopic(object = tokenizedCorpus, ldaresult = result_K10, ldaID = names(docs),
+plotTopic(object = tokenizedCorpus, ldaresult = result_K8, ldaID = names(docs),
           select = c(3,4), rel = TRUE, curves = "both", smooth = 0.1, legend = "topleft")
 
 # um die Plots lokal zu speichern:
-plot = plotTopic(object = tokenizedCorpus, ldaresult = result_K10, ldaID = names(docs),
+plot = plotTopic(object = tokenizedCorpus, ldaresult = result_K8, ldaID = names(docs),
                  select = c(3,4), rel = TRUE, curves = "both", smooth = 0.1, legend = "topleft")
 write.csv2(plot, "plot.csv")
 
 
 # Top Texts per unit (hier: quarter) - pro Quartal die relevantesten Texte pro Topic
-topTextsPerUnit(corp, result_K8, unit="quarter", foldername = "TopTextsPerUnit")
+topTextsPerUnit(corpus = corp, ldaresult = result_K8, ldaID = names(docs), unit = "quarter", foldername = "TopTextsPerUnit")
 
 # Top Words per unit (hier: quarter) - pro Quartal die relevantesten Worte pro Topic
-topWordsPerUnit(corp, result_K8, docs, unit="quarter", file="TopWordsPerUnit")
+topWordsPerUnit(corpus = corp, ldaresult = result_K8, docs = docs, unit = "quarter", file = "TopWordsPerUnit")
 
 
