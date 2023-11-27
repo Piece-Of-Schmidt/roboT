@@ -1,3 +1,8 @@
+# load packages
+require(lubridate, quietly = T)
+require(tosca, quietly = T)
+require(writexl, quietly = T)
+
 
 #'lda_getTopTexts
 #'
@@ -10,15 +15,11 @@
 #'@param file Dateiname
 #'
 lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts"){
-
+  
   # safety belt
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(missing("corpus") || missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
-  
-  # load packages
-  require(writexl, quietly = T)
-  require(tosca, quietly = T)
-  
+
   # is the passed object a textmeta object?
   corp = is.textmeta(corpus)
   
@@ -26,13 +27,16 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
   if(!corp) corpus = as.textmeta(corpus)
   
   # generate data frame of topTexts
-  tt = topTexts(ldaresult, ldaID, nTopTexts)
-  tt = showTexts(corpus, tt)
+  tt = tosca::topTexts(ldaresult, ldaID, nTopTexts)
+  tt = tosca::showTexts(corpus, tt)
+  
+  # shorten texts
+  tt = lapply(tt, function(topic){ topic$text = substr(topic$text, 0, 32000); topic })
   
   # get theta values of LDA result
   docs_per_topic = ldaresult$document_sums/rowSums(ldaresult$document_sums)
   docs_per_topic = apply(docs_per_topic, 2, function(x) x/sum(x))
-
+  
   # add theta values to data frame
   proms = apply(docs_per_topic, 1, function(x) round(sort(x,decreasing = T)[1:nTopTexts],2))
   for(i in seq(tt)){
@@ -45,7 +49,7 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
       mask = match(x[,"id"], corpus$meta$id)
       x[, "source"] = corpus$meta$resource[mask]
       x[, c(1,2,3,6,4,5)] }) }
-
+  
   # remove empty cols in case object is not a textmeta obj
   if(!corp) tt = lapply(tt, function(topic) topic[,c(1,3,5)])
   
@@ -67,12 +71,8 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 #'
 lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
   
-  # load packages
-  require(tosca, quietly = T)
-  require(writexl, quietly = T)
-
   # create data frame
-  topwords = topWords(ldaresult$topics, numWords)
+  topwords = tosca::topWords(ldaresult$topics, numWords)
   rel = round(rowSums(ldaresult$topics) / sum(ldaresult$topics), 3)
   topwords = as.data.frame(rbind(rel,topwords))
   colnames(topwords) = paste("Topic",1:ncol(topwords))
@@ -97,40 +97,44 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
 #'@param tnames (optional) desired topic names
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
-topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
-
+topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL){
+  
   # safety belt
   if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", topWords(ldaresult$topics))
+  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics))
   if(!is.null(foldername)) dir.create(foldername)
-  
-  # load packages
-  require(tosca, quietly = T)
-  require(lubridate, quietly = T)
-  
+
   # get params
   K = nrow(ldaresult$topics)
   doc = ldaresult$document_sums
-  colnames(doc) = as.character(corpus$meta$date[match(ldaID,corpus$meta$id)])
+  
+  # just to be sure: reorder meta so it matches the order of the ldaIDs
+  corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
   
   # create date chunks
-  q = c(month=1,months=1,bimonth=2,bimonths=2,quarter=3,quarters=3,year=12,years=12)[unit]
-  chunks = seq.Date(s.date, e.date, unit)
+  floor_dates = lubridate::floor_date(corpus$meta$date, unit)
+  chunks = unique(floor_dates)
   
+  # for every date chunk do the following
   progress.initialize(chunks)
   out = lapply(chunks, function(chunk){
     
-    chunk = as.Date(chunk)
-    currSpan = chunk < as.Date(colnames(doc)) & as.Date(colnames(doc)) < chunk+months(q)
-    temp = doc[, currSpan]
-    docs_per_topic = apply(temp, 2, function(x) x/sum(x))
+    # find all docs from that period
+    mask = floor_dates == chunk
     
-    temp = apply(docs_per_topic, 1, function(x){
+    # normalize values
+    docs_per_topic = apply(doc[, mask], 2, function(x) x/sum(x))
+    
+    # for every topic (row) do the following
+    temp = apply(docs_per_topic, 1, function(topic){
       
-      # get most prominent texts
-      proms = order(x,decreasing = T)[1:nTopTexts]
-      ids = ldaID[currSpan][proms]
+      # reorder theta values (decreasing=T)
+      proms = order(topic, decreasing = T)[seq(nTopTexts)]
+      theta_vals = topic[proms]
+      
+      # get corresponding text IDs
+      ids = ldaID[mask][proms]
       ids = ids[!is.na(ids)]
       
       if(!is.null(foldername)){
@@ -139,11 +143,12 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
         texts = showTexts(corpus, ids)
         
         # add theta value
-        texts[,"topic_relevance"] = round(sort(x,decreasing = T)[1:nTopTexts],2)
+        texts[, "topic_relevance"] = round(theta_vals[seq(nTopTexts)], 2)
         
         # add resource
         if("resource" %in% names(corpus$meta)){
-          texts[,"source"] = corpus$meta$resource[match(texts[,"id"],corpus$meta$id)]
+          mask = match(texts[,"id"], corpus$meta$id)
+          texts[,"source"] = corpus$meta$resource[mask]
           texts = texts[,c(1,2,6,5,3,4)]} else texts = texts[,c(1,2,5,3,4)]
         
         # shorten texts
@@ -151,24 +156,32 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
         
         # return 
         texts
-        
       }else ids
-
     })
-    names(temp) = tnames
     
     # save locally
-    if(!is.null(foldername)) writexl::write_xlsx(temp, paste0(foldername,"/",chunk,".xlsx"))
+    if(!is.null(foldername)){
+      names(temp) = tnames
+      filename = paste0(foldername,"/",chunk,".xlsx")
+      writexl::write_xlsx(temp, filename)
+    }
     
+    # show progress and return
     progress.indicate()
     temp
+    
   })
   
+  # only return ids if no foldername was provided
   if(is.null(foldername)){
+    
+    # rearrange list
     out = lapply(1:K, function(k){
       sapply(1:length(chunks), function(t) out[[t]][,k])
     })
-    out = lapply(out, function(x){colnames(x)=as.character(chunks); x})
+    
+    # add names
+    out = lapply(out, function(x){ colnames(x) = as.character(chunks); x })
     names(out) = tnames
   }
   
@@ -186,56 +199,56 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #'@param numWords Anzahl der topwords pro Topic
 #'@param tnames (optional) desired topic names
 #'@param values Wenn TRUE, werden zu den topwords selbst auch die zugehoerigen Werte ausgegeben
-#'@param s.date optional: Start-Datum, Wenn nur ein Teil der TopTexte von Interesse ist
-#'@param e.date optional: End-Datum, Wenn nur ein Teil der TopTexte von Interesse ist
-#'@param saveRAW Wenn TRUE werden die in der Analyse erzeugten Zwischenergebnisse ins Environment geladen
 #'@param file Dateiname, unter dem das Excel-Sheet gespeichert werden soll
 #'
-topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, s.date=NULL, e.date=NULL, saveRAW=F, file=NULL){
+topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, file=NULL){
   
+  # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
+  tw = ldaresult$topics
+  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(tw))
   
-  if(!is.null(file) && !require("writexl", character.only = T, quietly = T)){
-    install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
-    if(install) install.packages("writexl") else break
-  }
-  library(lubridate)
-  library(tosca)
-  require(writexl, quietly = T)
-  
-  K = nrow(ldaresult$topics)
+  # get params
+  K = nrow(tw)
   assignments = ldaresult$assignments
-  vocab = colnames(ldaresult$topics)
-  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaresult$topics)) else tnames = tnames
+  vocab = colnames(tw)
   
-  date_chunks = lubridate::floor_date(corpus$meta$date[match(names(docs), corpus$meta$id)], unit)
-  chunks = unique(date_chunks); min = chunks[1]; max = tail(chunks,1)
-  if(!is.null(s.date)) min = floor_date(as.Date(s.date),unit); if(!is.null(e.date)) max = floor_date(as.Date(e.date),unit)
-  chunks = chunks[chunks >= min & chunks <= max]
+  # just to be sure: reorder meta so it matches the order of the ldaIDs
+  corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
   
+  # create date chunks
+  floor_dates = lubridate::floor_date(corpus$meta$date, unit)
+  chunks = unique(floor_dates)
+  
+  # for every date chunk do the following
   topicsq = lapply(chunks, function(x){
-    tmp = table(factor(unlist(assignments[date_chunks == x])+1, levels = 1:K),
-                factor(unlist(lapply(docs[date_chunks == x], function(y) y[1,]))+1, levels = seq(length(vocab))))
+    
+    tmp = table(factor(unlist(assignments[floor_dates == x])+1, levels = 1:K),
+                factor(unlist(lapply(docs[floor_dates == x], function(y) y[1,]))+1, levels = seq(vocab)))
     tmp = matrix(as.integer(tmp), nrow = K)
     colnames(tmp) = vocab
     tmp
   })
-  if(saveRAW) names(topicsq)=chunks; ttm <<- topicsq
+  
   topwordsq = lapply(topicsq, topWords, numWords = numWords, values = T)
   names(topwordsq)=chunks
   
   out = lapply(1:K, function(k) sapply(seq(topwordsq), function(t) topwordsq[[t]][[1]][,k]))
   out = lapply(out, function(x){ colnames(x)=as.character(chunks); x})
   names(out) = tnames
+  
+  # generate values that belong to every top word
   if(values) out = list(words=out, vals=lapply(1:K, function(k) sapply(seq(topwordsq), function(t) topwordsq[[t]][[1]][,k])))
   
+  # save locally
   if(!is.null(file)){
-    
-    # save locally
     if(values) words=out[[1]] else words=out
-    words = lapply(words, as.data.frame)
-    writexl::write_xlsx(words, paste0(sub(".xlsx","",file),".xlsx"))
     
+    # transform to dataframe
+    words = lapply(words, as.data.frame)
+    
+    filename = paste0(sub(".xlsx","",file),".xlsx")
+    writexl::write_xlsx(words, filename)
   }
   
   invisible(out)
@@ -261,8 +274,8 @@ as.textmeta = function(named_object){
   
   if(!is.list(named_object)) named_object = as.list(named_object)
   return(
-    tosca::textmeta(text=named_object,
-                    meta=data.frame(id=names(named_object),
+    tosca::textmeta(text = named_object,
+                    meta = data.frame(id=names(named_object),
                                     date="",
                                     title="",
                                     fake="")
@@ -281,7 +294,7 @@ as.textmeta = function(named_object){
 #'@export
 #'
 is.textmeta = function(obj){
-  is.list(obj) & all(c("meta","text") %in% names(obj))
+  is.list(obj) && all(c("meta","text") %in% names(obj))
 }
 
 
@@ -343,4 +356,3 @@ progress.indicate = function(){
   # return invisibly
   invisible(TRUE)
 }
-
