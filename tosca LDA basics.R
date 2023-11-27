@@ -47,14 +47,15 @@ corp = filterWord(corp, "\\bEZB\\b") # -> Um das zu umgehen: "\\b" stellt sicher
 
 # Die Funktion filterWord() versteht zu einem gewissen Teil regular expressions
 # Es sind also auch Ausdruecke wie der Folgende moeglich:
-corp = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T)
+corp = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T)
 
 # -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht"
-# -> "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
-# -> Wichtig: "ignore.case=T" transformiert alle Texte automatisch in Kleinbuchstaben. Wenn du das umgehen willst, verwenden stattdessen den folgenden Code:
+# -> "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden. Wenn das nicht gewuenscht ist, Parameter auf F (FALSE) setzen
 
-texte_ueber_parteien_bool = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T, out="bin")
-texte_ueber_parteien_ids = names(corp$text)[bool]
+# -> Wichtig: "ignore.case=T" transformiert alle Texte automatisch in Kleinbuchstaben. Wenn das vermieden werden soll, ist der folgende Code zu empfehlen:
+
+mask = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T, out="bin") # -> out="bin" gibt keinen Korpus, sondern einen booleschen Vektor zurueck
+texte_ueber_parteien_ids = names(corp$text)[mask]
 corp = filterID(corp, texte_ueber_parteien_ids)
 
 # Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
