@@ -161,4 +161,6 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 '
 
 # save everything
-save.image(paste0("analysis_", gsub(":","-",format(Sys.time(), "%X")), ".RData"))
+current_date = gsub(":","-",format(Sys.time(), "%X"))
+save.image(paste0("analysis_", current_date, ".RData"))
+
