@@ -7,6 +7,7 @@
 # ggf. working directory festlegen
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
+# aktiviere erweierte Funktionen
 source("erweiterte Funktionen.R")
 
 # packages installieren und einladen
@@ -28,7 +29,7 @@ corp = readRDS()
 plotScot(corp)
 
 # Anz. Artikel im Zeitverlauf, in denen ein best. Suchwort vorkommt
-worte <- c("Trump", "Krim", "Merkel")
+worte = c("Trump", "Krim", "Merkel")
 plotFreq(corp, wordlist = worte)
 
 
@@ -45,9 +46,13 @@ ezb = filterWord(corp, "EZB")
 
 # -> die Funktion filterWord() versteht (zu einem gewissen Teil) regular expressions
 # Es sind also auch Ausdruecke wie der Folgende moeglich:
-texte_ueber_parteien = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)*\\b", ignore.case=T)
+texte_ueber_parteien = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T)
 
-# -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "*" bedeutet "kann vorkommen, muss aber nicht", "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
+# -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht", "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
+# -> ignore.case=T transformiert alle Texte automatisch in Kleinbuchstaben. Wenn du das umgehen willst, verwenden stattdessen den folgenden Code:
+texte_ueber_parteien_bool = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", out="bin")
+texte_ueber_parteien_ids = names(corp$text)[bool]
+texte_ueber_parteien = filterID(corp, texte_ueber_parteien_ids)
 
 
 
@@ -55,19 +60,22 @@ texte_ueber_parteien = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)
 # Korpus fuer LDA vorbereiten
 # -------------------------------------------------------------------------
 
-# Korpus tokenisieren - alternative Stopword-Liste
+# Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
 stopwords = readLines("stop_words_de.txt")
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
+saveRDS(tokenizedCorpus, "tokenizedCorpus.rds") # -> Objekt speichern. Das brauchen wir spaeter noch bei der Auswertung
 
 # Vokabular extrahieren
 wordlist = makeWordlist(tokenizedCorpus$text)
 vocab = wordlist$words
 
 # optional: rare words rauswerfen
-vocab = wordlist$words[wordlist$wordtable>5]
+min_occurence = 4
+vocab = wordlist$words[wordlist$wordtable >= min_occurence]
 
 # Texte in numerische Repraesentation ueberfuehren
 docs = LDAprep(tokenizedCorpus$text, vocab)
+saveRDS(docs, "docs.rds") # -> Objekt speichern. Das brauchen wir spaeter noch bei der Auswertung
 
 
 
@@ -101,6 +109,7 @@ for(k in K_WERTE){
 
 # save everything
 save.image(paste0("analysis_", gsub(":","-",format(Sys.time(), "%X")), ".RData"))
+
 
 
 # -------------------------------------------------------------------------
