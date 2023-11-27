@@ -1,6 +1,6 @@
 #'lda_getTopTexts
 #'
-#'Generiert die Top-Texte (n=100) einer LDA und speichert sie in einem entsprechenden Ordner auf dem Rechner ab. F?hrt die tosca-Funktionen "topTexts()" und "showTexts()" durch
+#'Generiert die Top-Texte (n=100) einer LDA und speichert sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch
 #'
 #'@param corpus Ausgangskorpus als meta-Datei. Sollte im Vorhinein um Duplikate bereinigt werden
 #'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
@@ -12,8 +12,8 @@ lda_getTopTexts = function(corpus, ldaResult, ldaID, nTopTexts=50, file="topText
   
   corp=T
   if(!is.textmeta(corpus)){corpus = as.textmeta(corpus); corp=FALSE}
-  if(missing(ldaID)){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(missing(corpus)|missing(ldaResult)) stop("Insert correct arguments for corpus and ldaResult")
+  if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
+  if(missing("corpus")|missing(ldaResult)) stop("Insert correct arguments for corpus and ldaResult")
   if(!require("writexl", character.only = T, quietly = T)){
     install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
     if(install) install.packages("writexl") else break
@@ -22,17 +22,17 @@ lda_getTopTexts = function(corpus, ldaResult, ldaID, nTopTexts=50, file="topText
   require(writexl, quietly = T)
   require(tosca, quietly = T)
   
-  #generate data frame of topTexts
+  # generate data frame of topTexts
   tt = topTexts(ldaResult, ldaID, nTopTexts)
   tt = showTexts(corpus, tt)
   
-  #add share of most prominent topic per tt to data frame
+  # add share of most prominent topic per tt to data frame
   docs_per_topic = ldaResult$document_sums/rowSums(ldaResult$document_sums)
   docs_per_topic = apply(docs_per_topic, 2, function(x) x/sum(x))
   proms = apply(docs_per_topic, 1, function(x) round(sort(x,decreasing = T)[1:nTopTexts],2))
   for(i in 1:length(tt)){tt[[i]][,"topic_relevance"] = proms[,i]; tt[[i]] = tt[[i]][,c(1,2,5,3,4)]}
   
-  #add resource to data frame
+  # add resource to data frame
   if("resource" %in% names(corpus$meta)){
     tt = lapply(tt, function(x){
       x[,"source"] = corpus$meta$resource[match(x[,"id"],corpus$meta$id)]
@@ -78,7 +78,7 @@ lda_getTopWords = function(ldaResult, numWords=50, file="topwords"){
 
 #'topTextsPerUnit
 #'
-#'Errechnet die TopTexts pro Monat/Bimonth/Quartal/Halbjahr/Jahr basierend auf einem tosca-LDA-Objekt und speichert sie (falls gew?nscht) lokal
+#'Errechnet die TopTexts pro Monat/Bimonth/Quartal/Halbjahr/Jahr basierend auf einem tosca-LDA-Objekt und speichert sie (falls gewuenscht) lokal
 #'
 #'@param corpus Textkorpus
 #'@param ldaResult Objekt, das die tosca-Funktion "LDAgen()" generiert
@@ -87,19 +87,21 @@ lda_getTopWords = function(ldaResult, numWords=50, file="topwords"){
 #'@param tnames (optional) desired topic names
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
-topTextsPerUnit = function(corpus, ldaResult, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
+topTextsPerUnit = function(corpus, ldaResult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
   
-  if(missing(corpus)|missing(ldaResult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaResult and topic")
+  if(missing("corpus") | missing(ldaResult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaResult and topic")
   require(tosca, quietly = T)
   require(lubridate, quietly = T)
   
+  # get params
   K = nrow(ldaResult$topics)
-  ldaID = names(corpus$text)
+  if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   doc = ldaResult$document_sums
-  colnames(doc)=as.character(corpus$meta$date[match(ldaID,corpus$meta$id)])
+  colnames(doc) = as.character(corpus$meta$date[match(ldaID,corpus$meta$id)])
   if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaResult$topics))
   if(!is.null(foldername)) dir.create(foldername)
   
+  # create date chunks
   q = c(month=1,months=1,bimonth=2,bimonths=2,quarter=3,quarters=3,year=12,years=12)[unit]
   chunks = seq.Date(s.date, e.date, unit)
   
@@ -112,17 +114,33 @@ topTextsPerUnit = function(corpus, ldaResult, unit="quarter", nTopTexts=20, tnam
     docs_per_topic = apply(temp, 2, function(x) x/sum(x))
     
     temp = apply(docs_per_topic, 1, function(x){
+      
+      # get most prominent texts
       proms = order(x,decreasing = T)[1:nTopTexts]
       ids = ldaID[currSpan][proms]
       ids = ids[!is.na(ids)]
+      
       if(!is.null(foldername)){
+        
+        # get text IDs
         texts = showTexts(corpus, ids)
+        
+        # add theta value
         texts[,"topic_relevance"] = round(sort(x,decreasing = T)[1:nTopTexts],2)
+        
+        # add resource
         if("resource" %in% names(corpus$meta)){
           texts[,"source"] = corpus$meta$resource[match(texts[,"id"],corpus$meta$id)]
           texts = texts[,c(1,2,6,5,3,4)]} else texts = texts[,c(1,2,5,3,4)]
+        
+        # shorten texts
+        texts$text = substr(texts$text, 0, 32000)
+        
+        # return 
         texts
+        
       }else ids
+
     })
     names(temp) = tnames
     
@@ -132,6 +150,7 @@ topTextsPerUnit = function(corpus, ldaResult, unit="quarter", nTopTexts=20, tnam
     progress.indicate()
     temp
   })
+  
   if(is.null(foldername)){
     out = lapply(1:K, function(k){
       sapply(1:length(chunks), function(t) out[[t]][,k])
@@ -161,7 +180,7 @@ topTextsPerUnit = function(corpus, ldaResult, unit="quarter", nTopTexts=20, tnam
 #'
 topWordsPerUnit = function(corpus, ldaResult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, s.date=NULL, e.date=NULL, saveRAW=F, file=NULL){
   
-  if(missing(corpus)|missing(ldaResult)|missing(docs)) stop("Insert arguments for corpus, ldaResult, and docs")
+  if(missing("corpus") || missing("ldaResult") || missing("docs")) stop("Insert arguments for corpus, ldaResult, and docs")
   
   if(!is.null(file) && !require("writexl", character.only = T, quietly = T)){
     install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
@@ -253,4 +272,63 @@ is.textmeta = function(obj){
 }
 
 
+
+#'progress.initialize
+#'
+#'initializes progress bar
+#'@param runner object that the loop is performed on
+#'
+progress.initialize = function(runner, track_time=F){
+  
+  # create new environment
+  progress.environment <<- new.env()
+  
+  # save params to new environment
+  local(runner <- runner, env=progress.environment) # running steps
+  local(width <- round((2/3)*getOption("width")) +
+          round((2/3)*getOption("width"))%%2,
+        env=progress.environment) # width of prgress bar (even number forced)
+  local(scaling <- width/length(runner), env=progress.environment) # scalar for each iteration
+  local(index_to_indicate_progress <- 1, env=progress.environment) # start index
+  
+  invisible(TRUE)
+}
+
+# -------------------------------------------------------------------------
+
+#'progress.indicate
+#'
+#'plots progress bar
+#'
+progress.indicate = function(){
+  
+  # load params from environment
+  runner = local(runner, env=progress.environment)
+  width = local(width, env=progress.environment)
+  scaling = local(scaling, env=progress.environment)
+  index_to_indicate_progress = local(index_to_indicate_progress, env=progress.environment)
+  track_time = local(track_time, env=progress.environment)
+  
+  # calculate progress
+  progress = paste(floor(100*index_to_indicate_progress/length(runner)), "%  ")
+  
+  # print progress bar
+  cat("\r",
+      strrep("=", round(index_to_indicate_progress * scaling)),
+      strrep(" ", round(width - index_to_indicate_progress*scaling)),
+      " | ",
+      progress, sep="")
+  
+  # update running parameter
+  local(index_to_indicate_progress <- index_to_indicate_progress+1, env=progress.environment)
+  
+  # if done: reset running variable
+  if(local(index_to_indicate_progress, env=progress.environment) == length(runner)+1){
+    local(index_to_indicate_progress <- 1, env=progress.environment)
+    cat("\n")
+  }
+  
+  # return invisibly
+  invisible(TRUE)
+}
 
