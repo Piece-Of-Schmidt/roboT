@@ -11,5 +11,10 @@ Das Skript ist so aufgebaut, dass es einige grundlegende Funktionalitaeten des t
 * gehen Sie das Skript Zeile fuer Zeile durch und fuehren Sie die Funktionen aus, die fuer Ihre Analyse notwendig und sinnvoll sind
 * bei Fragen melden Sie sich gerne bei Ihrem/Ihrer Betreuer:in
 
+### Quelle
+Das Skript basiert auf dem R-Paket tosca:
+[Dokumentation(https://cran.r-project.org/web/packages/tosca/index.html)]
+
+
 ### Feedback
 Schicken Sie uns gerne Feedback zu den Skripten :)
