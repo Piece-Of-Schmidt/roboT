@@ -42,17 +42,23 @@ plotFreq(corp, wordlist = worte)
 corp = filterDate(corp, s.date="2010-01-01", e.date="2020-12-31")
 
 # Auf Grundlage des Vorkommens bestimmter Worte
-corp = filterWord(corp, "EZB")
+corp = filterWord(corp, "EZB") # -> Wichtig: per Default fuehrt die Funktion sog. Pattern Searches aus. D.h., es werden auch solche Dokumente gefunden, in denen "OEZBECK" vorkommt 
+corp = filterWord(corp, "\\bEZB\\b") # -> "\\b" stellt sicher, dass "EZB" zu beiden Seiten von einer Word Boundary (Leer- oder Satzzeichen) umgeben ist
 
-# -> die Funktion filterWord() versteht (zu einem gewissen Teil) regular expressions
+# Die Funktion filterWord() versteht zu einem gewissen Teil regular expressions
 # Es sind also auch Ausdruecke wie der Folgende moeglich:
 corp = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T)
 
-# -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht", "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
-# -> ignore.case=T transformiert alle Texte automatisch in Kleinbuchstaben. Wenn du das umgehen willst, verwenden stattdessen den folgenden Code:
-texte_ueber_parteien_bool = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", out="bin")
+# -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht"
+# -> "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden 
+# -> Wichtig: "ignore.case=T" transformiert alle Texte automatisch in Kleinbuchstaben. Wenn du das umgehen willst, verwenden stattdessen den folgenden Code:
+
+texte_ueber_parteien_bool = filterWord(corp, "\\bCDU\\b|\\bSPD\\b|\\bFDP\\b|Gr(ü|ue)ne(n)?\\b", ignore.case=T, out="bin")
 texte_ueber_parteien_ids = names(corp$text)[bool]
 corp = filterID(corp, texte_ueber_parteien_ids)
+
+# Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
+# Siehe Koppers et al. (2020) tosca Vignette
 
 
 
