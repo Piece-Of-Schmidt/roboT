@@ -7,12 +7,12 @@
 # ggf. working directory festlegen
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-# aktiviere erweierte Funktionen
-source("erweiterte Funktionen.R")
-
 # packages installieren und einladen
 if(! require("tosca", character.only = T, quietly = T)) install.packages("tosca")
 if(! require("writexl", character.only = T, quietly = T)) install.packages("writexl")
+
+# aktiviere erweierte Funktionen
+source("erweiterte Funktionen.R")
 
 library(tosca)
 library(writexl)
