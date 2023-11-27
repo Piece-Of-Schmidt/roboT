@@ -59,7 +59,7 @@ relevant_ids = names(corp$text)[mask]
 corp = filterID(corp, relevant_ids)
 
 # Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
-# Siehe Koppers et al. (2020) tosca Vignette
+# Siehe Koppers et al. (2021) tosca Vignette
 
 
 
@@ -120,7 +120,7 @@ for(k in K_WERTE){
 # LDA auswerten
 # -------------------------------------------------------------------------
 
-# Weitere Funktionen fuer die Auswertung: Siehe Koppers et al. (2020) tosca Vignette
+# Weitere Funktionen fuer die Auswertung: Siehe Koppers et al. (2021) tosca Vignette
 
 
 # Beispiel: PlotTopic:
