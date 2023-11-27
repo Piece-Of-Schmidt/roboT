@@ -13,7 +13,7 @@ Das Skript ist so aufgebaut, dass es einige grundlegende Funktionalitaeten des t
 
 ### Quelle
 Das Skript basiert auf dem R-Paket tosca:
-Dokumentation: https://cran.r-project.org/web/packages/tosca/index.html
+\nDokumentation: https://cran.r-project.org/web/packages/tosca/index.html
 
 
 ### Feedback
