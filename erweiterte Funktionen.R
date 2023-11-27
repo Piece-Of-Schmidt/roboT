@@ -1,3 +1,7 @@
+
+# packages installieren und einladen
+if(! require("tosca", character.only = T, quietly = T)) install.packages("tosca")
+if(! require("writexl", character.only = T, quietly = T)) install.packages("writexl")
 #'lda_getTopTexts
 #'
 #'Generiert die Top-Texte (n=100) einer LDA und speichert sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch
