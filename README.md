@@ -12,8 +12,8 @@ Das Skript ist so aufgebaut, dass es einige grundlegende Funktionalitaeten des t
 * bei Fragen melden Sie sich gerne bei Ihrem/Ihrer Betreuer:in
 
 ### Quelle
-Das Skript basiert auf dem R-Paket tosca:
-\nDokumentation: https://cran.r-project.org/web/packages/tosca/index.html
+Das Skript basiert auf dem R-Paket tosca:<br>
+Dokumentation: https://cran.r-project.org/web/packages/tosca/index.html
 
 
 ### Feedback
