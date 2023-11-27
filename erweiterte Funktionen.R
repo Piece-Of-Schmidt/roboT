@@ -1,7 +1,7 @@
 
 #'lda_getTopTexts
 #'
-#'Generiert die Top-Texte (n=100) einer LDA und speichert sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch
+#'Speichert die Top-Texte (n=100) einer LDA und einem Excel-Sheet und legt sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch. Erweitert den Standard-tosca-Output um zwei weitere Spalten ("topic_relevance" und "source")
 #'
 #'@param corpus Ausgangskorpus als meta-Datei. Sollte im Vorhinein um Duplikate bereinigt werden
 #'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
@@ -10,38 +10,48 @@
 #'@param file Dateiname
 #'
 lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts"){
-  
-  corp=T
-  if(!is.textmeta(corpus)){corpus = as.textmeta(corpus); corp=FALSE}
+
+  # safety belt
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(missing("corpus")|missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
-  if(!require("writexl", character.only = T, quietly = T)){
-    install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
-    if(install) install.packages("writexl") else break
-  }
+  if(missing("corpus") || missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
   
+  # load packages
   require(writexl, quietly = T)
   require(tosca, quietly = T)
+  
+  # is the passed object a textmeta object?
+  corp = is.textmeta(corpus)
+  
+  # convert to textmeta object, even if object is just a list of texts
+  if(!corp) corpus = as.textmeta(corpus)
   
   # generate data frame of topTexts
   tt = topTexts(ldaresult, ldaID, nTopTexts)
   tt = showTexts(corpus, tt)
   
-  # add share of most prominent topic per tt to data frame
+  # get theta values of LDA result
   docs_per_topic = ldaresult$document_sums/rowSums(ldaresult$document_sums)
   docs_per_topic = apply(docs_per_topic, 2, function(x) x/sum(x))
+
+  # add theta values to data frame
   proms = apply(docs_per_topic, 1, function(x) round(sort(x,decreasing = T)[1:nTopTexts],2))
-  for(i in 1:length(tt)){tt[[i]][,"topic_relevance"] = proms[,i]; tt[[i]] = tt[[i]][,c(1,2,5,3,4)]}
+  for(i in seq(tt)){
+    tt[[i]][, "topic_relevance"] = proms[,i]
+    tt[[i]] = tt[[i]][, c(1,2,5,3,4)] }
   
   # add resource to data frame
   if("resource" %in% names(corpus$meta)){
     tt = lapply(tt, function(x){
-      x[,"source"] = corpus$meta$resource[match(x[,"id"],corpus$meta$id)]
-      x[,c(1,2,3,6,4,5)]})}
+      mask = match(x[,"id"], corpus$meta$id)
+      x[, "source"] = corpus$meta$resource[mask]
+      x[, c(1,2,3,6,4,5)] }) }
+
+  # remove empty cols in case object is not a textmeta obj
   if(!corp) tt = lapply(tt, function(topic) topic[,c(1,3,5)])
   
   # save locally
-  if(!is.null(file)) writexl::write_xlsx(tt, paste0(sub(".xlsx","",file),".xlsx"))
+  filename = paste0(sub(".xlsx","",file), ".xlsx")
+  if(!is.null(file)) writexl::write_xlsx(tt, filename)
   
   invisible(tt)
 }
@@ -49,7 +59,7 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 
 #'lda_getTopWords
 #'
-#'Generiert ein Excel-Sheet mit den topwords einer LDA
+#'Generiert ein Excel-Sheet mit den topwords einer LDA und legt dieses lokal auf dem rechner ab.
 #'
 #'@param ldaresult Objekt, das die tosca-Funktion "LDAgen()" generiert
 #'@param numWords Anzahl der topwords pro Topic
@@ -57,21 +67,20 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 #'
 lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
   
-  if(!require("writexl", character.only = T, quietly = T)){
-    install = as.logical(as.numeric(readline("Package 'writexl' is not installed but required. Shall it be installed now? (NO: 0, YES: 1)  ")))
-    if(install) install.packages("writexl") else break
-  }
+  # load packages
   require(tosca, quietly = T)
   require(writexl, quietly = T)
-  
+
+  # create data frame
   topwords = topWords(ldaresult$topics, numWords)
-  rel = round(rowSums(ldaresult$topics)/sum(ldaresult$topics),3)
+  rel = round(rowSums(ldaresult$topics) / sum(ldaresult$topics), 3)
   topwords = as.data.frame(rbind(rel,topwords))
   colnames(topwords) = paste("Topic",1:ncol(topwords))
   rownames(topwords) = NULL
   
   # save locally
-  if(!is.null(file)) writexl::write_xlsx(topwords, paste0(sub(".xlsx","",file),".xlsx"))
+  filename = paste0(sub(".xlsx","",file),".xlsx")
+  if(!is.null(file)) writexl::write_xlsx(topwords, filename)
   
   invisible(topwords)
 }
@@ -89,18 +98,21 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
 topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL, s.date=min(corpus$meta$date, na.rm=T), e.date=max(corpus$meta$date, na.rm=T)){
-  
+
+  # safety belt
   if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
+  if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
+  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", topWords(ldaresult$topics))
+  if(!is.null(foldername)) dir.create(foldername)
+  
+  # load packages
   require(tosca, quietly = T)
   require(lubridate, quietly = T)
   
   # get params
   K = nrow(ldaresult$topics)
-  if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   doc = ldaresult$document_sums
   colnames(doc) = as.character(corpus$meta$date[match(ldaID,corpus$meta$id)])
-  if(is.null(tnames)) tnames = paste0("Topic",1:K,".",topWords(ldaresult$topics))
-  if(!is.null(foldername)) dir.create(foldername)
   
   # create date chunks
   q = c(month=1,months=1,bimonth=2,bimonths=2,quarter=3,quarters=3,year=12,years=12)[unit]
