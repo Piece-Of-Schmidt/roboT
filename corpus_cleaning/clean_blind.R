@@ -4,6 +4,15 @@
 source("functions.R")
 before = length(corpus$text)
 
+# params werden vom main skript vererbt
+if(!exists(hbweltsz)) hbweltsz = F
+if(!exists(utf8)) utf8 = T
+if(!exists(check_first_chars)) check_first_chars = 120
+if(!exists(min_nchar)) min_nchar = 750
+if(!exists(max_nchar)) max_nchar = 100000
+
+
+
 # -------------------------------------------------------------------------
 # rein strukturelle Vorverarbeitung
 # -------------------------------------------------------------------------
