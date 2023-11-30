@@ -4,7 +4,7 @@ require(tosca)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # falls nur ein bestimmter Zeitabschnitt gewuenscht ist
-corpus = filterDate(corpus, "2001-01-01") 
+corpus = filterDate(corpus, "2001-01-01", "2024-01-01") 
 
 
 # -------------------------------------------------------------------------
@@ -16,9 +16,6 @@ hbweltsz = F
 
 utf8 = T
 # kann sehr lange dauern
-
-unit = "day"
-# relevant fuer filterDups_titles und filterDups_leads. Vergleiche nur Texte, die im selben Zeitraum (unit) erschienen sind
 
 check_first_chars = 120
 # relevant fuer filterDups_leads. Auf Basis wie vieler Characters sollen die Dokumente verglichen werden?
@@ -68,7 +65,6 @@ filterTitles(corpus, pattern, print=T)
 
 # Doks ausschließen, bei denen <pattern> im Title vorkommt
 corpus = filterTitles(corpus, pattern)
-
 
 
 
