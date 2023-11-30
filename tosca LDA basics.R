@@ -70,6 +70,11 @@ corp = filterID(corp, relevant_ids)
 # Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
 stopwords = readLines("stop_words_de.txt")
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
+
+# kurze Dokumente entfernen
+min_length = 10 # mind. 10 Worte
+tokenizedCorpus = filterCount(tokenizedCorpus, count = min_length)
+
 saveRDS(tokenizedCorpus, "tokenizedCorpus.rds") # -> Objekt speichern. Das brauchen wir spaeter noch bei der Auswertung
 
 # Vokabular extrahieren
