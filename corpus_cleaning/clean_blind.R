@@ -8,20 +8,6 @@ before = length(corpus$text)
 # rein strukturelle Vorverarbeitung
 # -------------------------------------------------------------------------
 
-# Select unique text elements by ID
-{
-  a = Sys.time()
-  before = nrow(corpus$meta)
-  cat("Select unique text elements by ID")
-  ids = unique(names(corpus$text))
-  corpus$text = corpus$text[ids]
-  corpus$meta = corpus$meta[match(ids,corpus$meta$id),]
-  diff = difftime(Sys.time(), a)
-  cat(" | Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
-  cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n\n",
-              nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-  
-}
 
 # Shorten meta data
 {
@@ -62,7 +48,6 @@ before = length(corpus$text)
   cat(" | Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n\n")
 }
 
-
 # Restrict corpus to long texts
 {
   a = Sys.time()
@@ -77,7 +62,6 @@ before = length(corpus$text)
   
 }
 
-
 # remove too long texts
 {
   a = Sys.time()
@@ -89,7 +73,6 @@ before = length(corpus$text)
   cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n\n",
               nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
 }
-
 
 # Redefine resources
 if(hbweltsz){
@@ -119,6 +102,21 @@ if(utf8){
 # Duplikate raus
 # -------------------------------------------------------------------------
 
+# Select unique text elements by ID
+{
+  a = Sys.time()
+  before = nrow(corpus$meta)
+  cat("Select unique text elements by ID")
+  ids = unique(names(corpus$text))
+  corpus$text = corpus$text[ids]
+  corpus$meta = corpus$meta[match(ids,corpus$meta$id),]
+  diff = difftime(Sys.time(), a)
+  cat(" | Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
+  cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n\n",
+              nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+  
+}
+
 # duplist
 {
   a = Sys.time()
@@ -136,7 +134,7 @@ if(utf8){
 {
   a = Sys.time()
   cat("Filter Leads: ")
-  corpus = filterDups_leads(corpus, check_first_chars, unit)
+  corpus = filterDups_leads(corpus, check_first_chars, "week")
   diff = difftime(Sys.time(), a)
   cat("Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n\n")
 }
@@ -145,7 +143,7 @@ if(utf8){
 {
   a = Sys.time()
   cat("Filter Titles: ")
-  corpus = filterDups_titles(corpus, unit)
+  corpus = filterDups_titles(corpus, "day")
   diff = difftime(Sys.time(), a)
   cat("Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n\n")
 }
