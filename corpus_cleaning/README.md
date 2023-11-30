@@ -1,9 +1,7 @@
-# corpus_cleaning
-
 # Beschreibung
 Die hier zusammengestellten Skripte fassen die haeufigsten Vorverarbeitungsschritte an ein Corpus-Cleaning zusammen. Das bedeutet nicht, dass die hier eingebundenen Funktionen vollstaendig sind und eine tiefe Analyse des Korpus ueberfluessig machen. Vielmehr handelt es sich hierbei um eine Art lower boundary.
 
-**Das Skript (teil)automatisiert:**
+### Das Skript (teil)automatisiert
 - die Kuerzung der Meta-Daten auf die wichtigsten Variablen
 - eine Sortierung der Meta-Daten (und entsprechend der Text-Daten) nach Datum
 - ein grobes Cleaning der Titles (u.A. Entfernen von mehreren Leerzeichen)
@@ -16,7 +14,7 @@ Die hier zusammengestellten Skripte fassen die haeufigsten Vorverarbeitungsschri
   - Texte, die innerhalb derselben Woche erschienen sind und mit denselben 120 Zeichen beginnen (beide Werte (Woche und nchar) koennen angepasst werden)
   - Texte, die innerhalb desselben Tages erschienen sind und denselben Titel haben
  
-**Darueber hinaus bietet das Skript einige Befehle zur weiteren Analyse des Korpus**
+### Darueber hinaus bietet das Skript einige Befehle zur weiteren Analyse des Korpus
 - Quellen checken (welche Quellen sind hinterlegt und wie ist die Frequenz der Quellen im Zeitverlauf?)
 - Titles checken (welche Titles kommen ungewoehnlich haeufig vor?)
 - Titles loeschen aufgrund bestimmter Patterns/Words, die in den Titles vorkommen
