@@ -1,5 +1,5 @@
 # Beschreibung
-Die hier zusammengestellten Skripte fassen die haeufigsten Vorverarbeitungsschritte an ein Corpus-Cleaning zusammen. Das bedeutet nicht, dass die hier eingebundenen Funktionen vollstaendig sind und eine tiefe Analyse des Korpus ueberfluessig machen. Vielmehr handelt es sich hierbei um eine Art lower boundary.
+Die hier zusammengestellten Skripte fassen die haeufigsten Vorverarbeitungsschritte an ein Corpus-Cleaning zusammen. Das bedeutet nicht, dass die hier eingebundenen Funktionen vollstaendig sind und eine tiefe Analyse des Korpus ueberfluessig machen. Vielmehr handelt es sich hierbei um eine Art bare minimum.
 
 ### Das Skript (teil)automatisiert
 - die Kuerzung der Meta-Daten auf die wichtigsten Variablen
