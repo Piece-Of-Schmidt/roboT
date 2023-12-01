@@ -4,6 +4,19 @@ require(tosca, quietly = T)
 require(writexl, quietly = T)
 
 
+filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
+  
+  lens = lengths(corpus$text)
+  
+  if(lower_thresh < 1) lower_thresh = quantile(lens, lower_thresh)
+  if(upper_thresh <= 1) upper_thresh = quantile(lens, upper_thresh)
+  
+  # return restricted corpus
+  mask = lens >= lower_thresh & lens <= upper_thresh
+  invisible(filterID(corpus, names(mask)[mask]))
+  
+}
+
 #'lda_getTopTexts
 #'
 #'Speichert die Top-Texte (n=100) einer LDA und einem Excel-Sheet und legt sie in einem entsprechenden Ordner auf dem Rechner ab. Fuehrt die tosca-Funktionen "topTexts()" und "showTexts()" durch. Erweitert den Standard-tosca-Output um zwei weitere Spalten ("topic_relevance" und "source")
