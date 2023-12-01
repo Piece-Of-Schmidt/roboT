@@ -2,14 +2,14 @@
 
 # load functions
 source("functions.R")
-before = length(corpus$text)
+before_whole = length(corpus$text)
 
 # params werden vom main skript vererbt
-if(!exists(hbweltsz)) hbweltsz = F
-if(!exists(utf8)) utf8 = T
-if(!exists(check_first_chars)) check_first_chars = 120
-if(!exists(min_nchar)) min_nchar = 750
-if(!exists(max_nchar)) max_nchar = 100000
+if(!exists("hbweltsz")) hbweltsz = F
+if(!exists("utf8")) utf8 = T
+if(!exists("check_first_chars")) check_first_chars = 120
+if(!exists("min_nchar")) min_nchar = 750
+if(!exists("max_nchar")) max_nchar = 100000
 
 
 
@@ -160,4 +160,4 @@ if(utf8){
 
 after = length(corpus$text)
 message(sprintf("Complete.\nKept %d out of %d articles | %d removed (%.2f%%)\n",
-            after, before, before - after, 100 * (before - after) / before))
+            after, before_whole, before_whole - after, 100 * (before_whole - after) / before_whole))
