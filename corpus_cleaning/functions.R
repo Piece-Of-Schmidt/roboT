@@ -90,7 +90,7 @@ filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day") {
 
 
 # Plot Sources
-plotSources = function(corpus, ..., span=0.1) {
+plotSources = function(corpus, unit="month", ..., span=0.1) {
   
   # count
   data = corpus$meta %>%
