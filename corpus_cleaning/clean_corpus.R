@@ -3,6 +3,9 @@ require(tosca)
 # set wd
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
+# load functions
+source("functions.R")
+
 # falls nur ein bestimmter Zeitabschnitt gewuenscht ist
 corpus = filterDate(corpus, "2001-01-01", "2024-01-01") 
 
