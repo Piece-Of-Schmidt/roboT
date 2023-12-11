@@ -17,7 +17,7 @@ corpus = filterDate(corpus, "2001-01-01", "2024-01-01")
 hbweltsz = F
 # wenn der Korpus der HB-Welt-SZ-Korpus ist, den Param auf T setzen
 
-utf8 = T
+utf8 = F
 # kann sehr lange dauern
 
 check_first_chars = 120
