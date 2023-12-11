@@ -2,6 +2,7 @@ require(dplyr)
 require(tosca)
 require(lubridate)
 require(utf8)
+require(ggplot2)
 
 
 filterTitles = function(corpus, pattern, ignore.case=F, print=F){
