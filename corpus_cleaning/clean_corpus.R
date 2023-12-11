@@ -24,12 +24,13 @@ check_first_chars = 120
 # relevant fuer filterDups_leads. Auf Basis wie vieler Characters sollen die Dokumente verglichen werden?
 
 min_nchar = 750
-# Massgabe: Jeder Text soll mindestens eine halbe Normseite lange
+# Massgabe: Jeder Text soll mindestens eine halbe Normseite lang sein
 # eine Normseite: 30 Zeilen*60 Anschlaege/chars = 1800 Chars. Von der VG Wort vereinfacht als Normseite bezeichnet: 1500 Zeichen
-# Halbe Normseite: 750 Chars
+# -> Halbe Normseite: 750 Chars
 
 cutoff = 0.99
 max_nchar = quantile(nchar(corpus$text), cutoff)
+# Massgabe: Das laengste 1% der Texte wird geloescht
 
 # run script
 source("clean_blind.R")
