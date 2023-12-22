@@ -3,7 +3,7 @@ require(lubridate, quietly = T)
 require(tosca, quietly = T)
 require(writexl, quietly = T)
 
-
+#' Erweiterung von tosca::filterCounts(): erlaubt sowohl relative als auch absolute Werte, sowohl obere als auch untere Grenzen
 filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
   
   lens = lengths(corpus$text)
@@ -15,6 +15,28 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
   mask = lens >= lower_thresh & lens <= upper_thresh
   invisible(filterID(corpus, names(mask)[mask]))
   
+}
+
+#' Erzeugt Samples basierend auf einem Text-Input. Input muss als Liste von Textsammlungen uebergeben werden.
+#' Funktion erlaubt den Einsatz verschiedener Speicher-Funktion. Eroeglicht damit den flexiblen Einsatz von
+#' write.csv(), write.csv2() für Windows-Files oder write.table(). 
+sample_texts = function(texts, sample_size=100, seed=1337, filenames=NULL, call="write.csv", ...){
+  
+  # build texts
+  lapply(seq(texts), function(idx){
+    
+    cat("Process subcorp ", idx, "/", length(texts), "\n", sep="")
+    
+    set.seed(seed)
+    s_texts = sample(texts[[idx]], size=sample_size)
+    
+    if(!is.null(filenames)){
+      filename = paste0(sub("[.]csv","",filenames[idx]), ".csv")
+      args = list(..., x = s_texts, file=filename)
+      do.call(call, args = args)
+    }
+    s_texts
+  })
 }
 
 #'lda_getTopTexts
