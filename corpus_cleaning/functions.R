@@ -28,6 +28,8 @@ filterDups_titles = function(corpus, unit = "day") {
   # Sicherstellen, dass das Eingabeformat korrekt ist
   # if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
   
+  before = nrow(corpus$meta)
+  
   # corpus sortieren
   corpus$meta = corpus$meta[order(corpus$meta$date),]
   corpus$text = corpus$text[match(corpus$meta$id, names(corpus$text))]
@@ -36,8 +38,6 @@ filterDups_titles = function(corpus, unit = "day") {
     message("NAs found in meta data. Corpus is restricted to non-NA cases.")
     corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$date)])
   }
-  
-  before = nrow(corpus$meta)
   
   # Erstellung der Datumsgruppen
   date_chunks = if (unit == "all") "2000-01-01" else unique(lubridate::floor_date(corpus$meta$date, unit))
