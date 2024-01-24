@@ -28,6 +28,15 @@ filterDups_titles = function(corpus, unit = "day") {
   # Sicherstellen, dass das Eingabeformat korrekt ist
   # if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
   
+  # corpus sortieren
+  corpus$meta = corpus$meta[order(corpus$meta$date),]
+  corpus$text = corpus$text[match(corpus$meta$id, names(corpus$text))]
+  
+  if(any(is.na(corpus$meta$date))){
+    message("NAs found in meta data. Corpus is restricted to non-NA cases.")
+    corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$date)])
+  }
+  
   before = nrow(corpus$meta)
   
   # Erstellung der Datumsgruppen
