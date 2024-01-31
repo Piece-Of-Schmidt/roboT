@@ -11,7 +11,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("0 functions.R")
 
 # Datensatz einladen
-corp = readRDS()
+corp = readRDS("example_corpus.rds")
 
 
 # -------------------------------------------------------------------------
@@ -22,37 +22,9 @@ corp = readRDS()
 plotScot(corp)
 
 # Anz. Artikel im Zeitverlauf, in denen ein best. Suchwort vorkommt
-worte = c("Trump", "Krim", "Merkel")
+worte = c("America", "World", "Love")
 plotFreq(corp, wordlist = worte)
 
-
-
-# -------------------------------------------------------------------------
-# Korpus einschraenken
-# -------------------------------------------------------------------------
-
-# Auf Grundlage des Erscheinungsdatums der Artikel 
-corp = filterDate(corp, s.date="2010-01-01", e.date="2020-12-31")
-
-# Auf Grundlage des Vorkommens bestimmter Worte
-corp = filterWord(corp, "EZB") # -> Wichtig: per Default fuehrt die Funktion sog. Pattern Searches aus. D.h., es werden auch solche Dokumente gefunden, in denen (Beispiel hier) "OEZBECK" vorkommt 
-corp = filterWord(corp, "\\bEZB\\b") # -> Um das zu umgehen: "\\b" stellt sicher, dass "EZB" zu beiden Seiten von einer Word Boundary (Leer- oder Satzzeichen) umgeben ist
-
-# Die Funktion filterWord() versteht zu einem gewissen Teil regular expressions
-# Es sind also auch Ausdruecke wie der Folgende moeglich:
-corp = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T)
-
-# -> "|" bedeutet "oder", "\\b" bedeutet "word boundary", "?" bedeutet "kann vorkommen, muss aber nicht"
-# -> "ignore.case=T" stellt sicher, dass Gross- und Kleinschreibung ignoriert werden. Wenn das nicht gewuenscht ist, Parameter auf F (FALSE) setzen
-
-# -> Wichtig: "ignore.case=T" transformiert alle Texte automatisch in Kleinbuchstaben. Wenn das vermieden werden soll, ist der folgende Code zu empfehlen:
-
-mask = filterWord(corp, "\\b(CDU|SPD|FDP|Gr(ü|ue)ne(n)?)\\b", ignore.case=T, out="bin") # -> out="bin" gibt keinen Korpus, sondern einen booleschen Vektor zurueck
-relevant_ids = names(corp$text)[mask]
-corp = filterID(corp, relevant_ids)
-
-# Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
-# Siehe Koppers et al. (2021) tosca Vignette
 
 
 
@@ -61,7 +33,7 @@ corp = filterID(corp, relevant_ids)
 # -------------------------------------------------------------------------
 
 # Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
-stopwords = readLines("stopword_lists/stop_words_de.txt")
+stopwords = readLines("stopword_lists/stop_words_en.txt")
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
 
 # kurze Dokumente entfernen
@@ -123,7 +95,7 @@ for(k in K_WERTE){
 
 
 # print TopWords along with Doc Titles
-get_tw_and_titles(corpus = corp, ldaresult = result_K8, ldaID = names(docs), topic = 1, n = 20)
+get_tw_and_titles(corpus = corp, ldaresult = result_K8, ldaID = names(docs), topic = 8, n = 20)
 
 
 # Beispiel: PlotTopic:
