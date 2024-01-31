@@ -1,7 +1,7 @@
 # tosca basics
 
 ### Beschreibung
-Das Skript `2 tosca LDA basics.R` soll als Orientierung fuer eine simple LDA-Analyse mit tosca dienen. Das Skript ist ausdruecklich als "Grundgeruest" und nicht als "Komplettloesung" zu sehen. Fuer eine umfassende Analyse sollten die beispielhaft vorgeschlagenen Parameter angepasst und fuer die eigene Forschungsfrage optmiert sowie noch weitere Analyseschritte verfolgt werden. <br><br>
+Das Skript `2 tosca_LDA_basics.R` soll als Orientierung fuer eine simple LDA-Analyse mit tosca dienen. Das Skript ist ausdruecklich als "Grundgeruest" und nicht als "Komplettloesung" zu sehen. Fuer eine umfassende Analyse sollten die beispielhaft vorgeschlagenen Parameter angepasst und fuer die eigene Forschungsfrage optmiert sowie noch weitere Analyseschritte verfolgt werden. <br><br>
 
 Gleiches gilt für das Skript `1 corpus_cleaning.R`. Dieses Skript soll beispielhaft den Prozess des Korpus-Cleanings zeigen. Beide Skripte greifen auf Funktionen zu, die die Analyse weitestgehend vereinfachen. Bei Fragen zur Funktionsweise der Funktionen schauen Sie gerne ins `0 functions.R`-Skript oder fragen Sie uns. <br><br>
 
@@ -9,7 +9,7 @@ Beide Skripte sind so aufgebaut, dass sie einige grundlegende Funktionalitaeten 
 
 ### Verwendung
 * laden Sie das Repository herunten
-* oeffnen Sie das Skript `1 corpus_cleaning.R`, wenn Sie einen Korpus cleanen wollen, oder das Skript `2 tosca LDA basics.R` fuer eine beispielhafte LDA-Analyse
+* oeffnen Sie das Skript `1 corpus_cleaning.R`, wenn Sie einen Korpus cleanen wollen, oder das Skript `2 tosca_LDA_basics.R` fuer eine beispielhafte LDA-Analyse
 * gehen Sie das jew. Skript Zeile fuer Zeile durch und fuehren Sie die Funktionen aus, die fuer Ihre Analyse notwendig und sinnvoll sind
 * bei Fragen melden Sie sich gerne bei Ihrem/Ihrer Betreuer:in
 
