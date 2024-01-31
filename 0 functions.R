@@ -26,14 +26,14 @@ filterTitles = function(corpus, pattern, ignore.case=F, print=F){
   # find dups
   mask = !tosca::filterWord(corpus$meta$title, pattern, ignore.case=ignore.case, out="bin")
   
-  if(print) print(corpus$meta$title[!mask])
+  if(print){ print(corpus$meta$title[!mask]); cat("\n") }
   
   # print
   cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
               sum(mask), before, before - sum(mask), 100 * (before - sum(mask)) / before))
   
   # return
-  return(tosca::filterID(corpus, corpus$meta$id[mask]))
+  invisible(tosca::filterID(corpus, corpus$meta$id[mask]))
 }
 
 
@@ -116,9 +116,8 @@ filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", message
 }
 
 
-
 # Plot Sources
-plotSources = function(corpus, unit="month", ..., span=0.1) {
+plotSources = function(corpus, unit="month", ..., smooth=T, span=0.1) {
   
   # count
   data = corpus$meta %>%
@@ -126,10 +125,17 @@ plotSources = function(corpus, unit="month", ..., span=0.1) {
     count(date, resource)
   
   # generate plot
-  print(ggplot(data, aes(date, n, fill=resource))+
-          geom_area(...)+
-          geom_smooth(span=span, se=F, alpha=0.8, color="grey2")+ 
-          theme_classic())
+  if(smooth){
+    p = ggplot(data, aes(date, n, fill=resource))+
+      geom_area(...)+
+      geom_smooth(span=span, se=F, alpha=0.8, color="grey2")+ 
+      theme_classic()
+  }else{
+    p = ggplot(data, aes(date, n, fill=resource))+
+      geom_area(...)+
+      theme_classic()
+  }
+  print(p)
   
   invisible(data)
 }
