@@ -309,6 +309,22 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
   
 }
 
+get_tw_and_titles = function(corpus, lda_result, lda_ids, topic = 1, n = 20){
+  
+  # get titles
+  titles = topTexts(lda_result, lda_ids, limit=n)
+  titles = corpus$meta$title[match(titles, corpus$meta$id)]
+  titles = matrix(titles, nrow=n)[,topic]
+  
+  # get topwords
+  topwords = topWords(lda_result[["topics"]], n)[,topic]
+  
+  # print result
+  sep = paste(strrep(" ", max(nchar(topwords)) - nchar(topwords)), "| ")
+  
+  paste(paste(topwords, sep , titles))
+}
+
 
 #'lda_getTopTexts
 #'
