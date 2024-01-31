@@ -125,9 +125,11 @@ for(k in K_WERTE){
 # LDA auswerten
 # -------------------------------------------------------------------------
 
+
 # Weitere Funktionen fuer die Auswertung: Siehe Koppers et al. (2021) tosca Vignette
 
 
+# print TopWords along with Doc Titles
 get_tw_and_titles(corpus = corp, ldaresult = result_K8, ldaID = names(docs), topic = 1, n = 20)
 
 
