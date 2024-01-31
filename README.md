@@ -14,7 +14,7 @@ Beide Skripte sind so aufgebaut, dass sie einige grundlegende Funktionalitaeten 
 * bei Fragen melden Sie sich gerne bei Ihrem/Ihrer Betreuer:in
 
 ### Example Corpus
-Der Korpus, der in diesem Repo liegt, umfasst Film-Beschreibungen zu Filmen aus den 1980er Jahren. Die hinterlegten Texte sind Original-Texte von Wikipedia. Die Meta-Informationen der Dokumente sind allerdings (zum Teil) frei erfunden. Der Korpus hat also keinen Anspruch auf Richtigkeit oder Vollständigkeit und dient einzig und allein Demonstrationszwecken. 
+Der Korpus, der in diesem Repo liegt, umfasst Film-Beschreibungen zu Filmen aus den 1980er Jahren. Die hinterlegten Texte sind Original-Texte von Wikipedia. Die Meta-Informationen der Dokumente sind jedoch (zum Teil) frei erfunden. Der Korpus hat also keinen Anspruch auf Richtigkeit oder Vollständigkeit und dient einzig und allein Demonstrationszwecken. 
 
 ### Quelle
 *Koppers L, Rieger J, Boczek K, von Nordheim G (2021). tosca: Tools for Statistical Content Analysis. doi:10.5281/zenodo.3591068, R package version 0.3-2, https://github.com/Docma-TU/tosca.*<br>
