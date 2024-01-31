@@ -1,4 +1,4 @@
-# tosca_basics
+# tosca basics
 
 ### Beschreibung
 Das Skript `2 tosca LDA basics.R` soll als Orientierung fuer eine simple LDA-Analyse mit tosca dienen. Das Skript ist ausdruecklich als "Grundgeruest" und nicht als "Komplettloesung" zu sehen. Fuer eine umfassende Analyse sollten die beispielhaft vorgeschlagenen Parameter angepasst und fuer die eigene Forschungsfrage optmiert sowie noch weitere Analyseschritte verfolgt werden. <br><br>
