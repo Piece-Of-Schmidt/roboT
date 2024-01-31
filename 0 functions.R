@@ -335,7 +335,9 @@ get_tw_and_titles = function(corpus, ldaresult, ldaID, topic = 1, n = 20){
   # print result
   sep = paste(strrep(" ", max(nchar(topwords)) - nchar(topwords)), "| ")
   
-  paste(paste(topwords, sep , titles))
+  out = paste(topwords, sep , titles)
+  print("TopWords | Doc Titles")
+  print(out, width = max(nchar(out)))
 }
 
 
