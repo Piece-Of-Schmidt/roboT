@@ -14,6 +14,7 @@ source("0 functions.R")
 corp = readRDS("example_corpus.rds")
 
 
+
 # -------------------------------------------------------------------------
 # simple Korpus-Analysen
 # -------------------------------------------------------------------------
@@ -24,7 +25,6 @@ plotScot(corp)
 # Anz. Artikel im Zeitverlauf, in denen ein best. Suchwort vorkommt
 worte = c("America", "World", "Love")
 plotFreq(corp, wordlist = worte)
-
 
 
 
@@ -65,22 +65,25 @@ K_WERTE = c(8,10) # <- probiere hier verschiedene K-Werte aus
 for(k in K_WERTE){
   
   message("Generate results for K=", k)
+
+  # define seed
+  seed = 123
   
   # create subfolder
   if(! dir.exists(paste0("K",k))) dir.create(paste0("K",k))
   
   # save LDA-result to R environment
-  result = LDAgen(docs, K=k, vocab, folder = paste0("K",k,"/Ergebnis"), seed = 123)
+  result = LDAgen(docs, K=k, vocab, folder = paste0("K",k,"/Ergebnis"), seed = seed)
   assign(paste0("result_K",k), result)
   
   # save LDA-result locally
-  saveRDS(result, paste0("K",k,"/result_K",k, ".rds"))
+  saveRDS(result, sprintf("K%d/result_K%d_seed%d.rds", k, k, seed))
   
   # create Top Words
-  lda_getTopWords(result, file = paste0("K",k,"/TopWords_K",k))
+  lda_getTopWords(result, file = sprintf("K%d/TopWords_K%d_seed%d.rds", k, k, seed))
   
   # create Top Texts
-  lda_getTopTexts(corp, result, ldaID = names(docs), file = paste0("K",k,"/TopTexts_K",k))
+  lda_getTopTexts(corp, result, ldaID = names(docs), file = sprintf("K%d/TopTexts_K%d_seed%d.rds", k, k, seed))
   
 }
 
