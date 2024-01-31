@@ -68,7 +68,7 @@ corp = filterID(corp, relevant_ids)
 # -------------------------------------------------------------------------
 
 # Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
-stopwords = readLines("stop_words_de.txt")
+stopwords = readLines("stopword_lists/stop_words_de.txt")
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
 
 # kurze Dokumente entfernen
@@ -126,6 +126,9 @@ for(k in K_WERTE){
 # -------------------------------------------------------------------------
 
 # Weitere Funktionen fuer die Auswertung: Siehe Koppers et al. (2021) tosca Vignette
+
+
+get_tw_and_titles(corpus = corp, ldaresult = result_K8, ldaID = names(docs), topic = 1, n = 20)
 
 
 # Beispiel: PlotTopic:
