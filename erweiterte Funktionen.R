@@ -309,10 +309,10 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
   
 }
 
-get_tw_and_titles = function(corpus, lda_result, lda_ids, topic = 1, n = 20){
+get_tw_and_titles = function(corpus, lda_result, ldaID, topic = 1, n = 20){
   
   # get titles
-  titles = topTexts(lda_result, lda_ids, limit=n)
+  titles = topTexts(lda_result, ldaID, limit=n)
   titles = corpus$meta$title[match(titles, corpus$meta$id)]
   titles = matrix(titles, nrow=n)[,topic]
   
