@@ -7,15 +7,8 @@
 # ggf. working directory festlegen
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-# packages installieren und einladen
-if(! require("tosca", character.only = T, quietly = T)) install.packages("tosca")
-if(! require("writexl", character.only = T, quietly = T)) install.packages("writexl")
-
 # aktiviere erweierte Funktionen
-source("functions.R")
-
-library(tosca)
-library(writexl)
+source("0 functions.R")
 
 # Datensatz einladen
 corp = readRDS()
