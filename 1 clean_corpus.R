@@ -37,7 +37,7 @@ corpus = filterID(corpus, corpus$meta$id[corpus$meta$resource %in% quellen_list]
 
 # check titles ------------------------------------------------------------
 
-most_frquent_titles = table(corpus$meta$title)[1:20]
+most_frquent_titles = sort(table(corpus$meta$title), decreasing=T)[1:20]
 most_frquent_titles
 # -> zeigt an, welches die haeufigsten Dokumenten-Titel sind. Oft Rubriken, manchmal Leserbriefe etc.
 # -> Oft ist es ratsam, solche Dokumente von der Analyse auszuschliessen
