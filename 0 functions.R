@@ -1,6 +1,6 @@
 # install and/or load packages
 
-packages = c("lubridate","tosca","writexl", "dplyr", "utf8", "ggplot2")
+packages = c("lubridate","tosca","writexl", "dplyr", "utf8", "ggplot2", "deeplr")
 for(package in packages){
   
   load_package = T
