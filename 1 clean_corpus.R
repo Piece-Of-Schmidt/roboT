@@ -6,7 +6,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # load functions
 source("0 functions.R")
 
-corpus = readRDS("example_corpus.rds")
+corpus = readRDS("data/example_corpus.rds")
 corpus
 
 # filter by date
@@ -78,3 +78,10 @@ corpus_America = filterID(corpus, relevant_ids)
 # Fuer weitere Moeglichkeiten der Korpus-Einschraenkung (inkl. Einstellung, dass einzelne Worte mehrfach vorkommen sollen):
 # Siehe Koppers et al. (2021) tosca Vignette
 
+
+# -------------------------------------------------------------------------
+# Corpus speichern
+# -------------------------------------------------------------------------
+
+obj_to_save = corpus_America # hier auf das Objekt verweisen, das lokal gespeichert werden soll
+saveRDS(obj_to_save, "data/corpus_edited.rds")
