@@ -362,12 +362,14 @@ get_tw_and_titles = function(corpus, ldaresult, ldaID, topic = 1, n = 20){
 #'@param nTopTexts Menge an TopTexts, die generiert wird
 #'@param file Dateiname
 #'
-lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts"){
+lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts",
+                           translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
   
   # safety belt
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(missing("corpus") || missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
-
+  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
+  
   # is the passed object a textmeta object?
   corp = is.textmeta(corpus)
   
@@ -378,8 +380,15 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
   tt = tosca::topTexts(ldaresult, ldaID, nTopTexts)
   tt = tosca::showTexts(corpus, tt)
   
-  # shorten texts
-  tt = lapply(tt, function(topic){ topic$text = substr(topic$text, 0, 32000); topic })
+  # shorten (and translate) texts
+  tt = lapply(tt, function(topic){
+    topic$text = substr(topic$text, 0, max_text_length)
+    if(translate){
+      topic$title = toGerman2(topic$title, source_lang=source_lang, auth_key=deepl_key)
+      topic$text = toGerman2(topic$text, source_lang=source_lang, auth_key=deepl_key)
+    }
+    topic
+  })
   
   # get theta values of LDA result
   docs_per_topic = ldaresult$document_sums/rowSums(ldaresult$document_sums)
@@ -417,10 +426,17 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 #'@param numWords Anzahl der topwords pro Topic
 #'@param file Dateiname, unter dem das Excel-Sheet gespeichert werden soll
 #'
-lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
+lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
+                           translate=F, source_lang=NULL, deepl_key=NULL){
+  
+  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
   
   # create data frame
-  topwords = tosca::topWords(ldaresult$topics, numWords)
+  topwords2 = tosca::topWords(ldaresult$topics, numWords)
+  if(translate){
+    topwords = toGerman2(topwords, source_lang=source_lang, auth_key=deepl_key)
+    topwords = matrix(topwords, ncol = nrow(ldaresult$topics))
+  }
   rel = round(rowSums(ldaresult$topics) / sum(ldaresult$topics), 3)
   topwords = as.data.frame(rbind(rel,topwords))
   colnames(topwords) = paste("Topic",1:ncol(topwords))
@@ -445,14 +461,16 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords"){
 #'@param tnames (optional) desired topic names
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
-topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL){
+topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL,
+                           translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
   
   # safety belt
   if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics))
   if(!is.null(foldername)) dir.create(foldername)
-
+  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
+    
   # get params
   K = nrow(ldaresult$topics)
   doc = ldaresult$document_sums
@@ -499,9 +517,13 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
           texts[,"source"] = corpus$meta$resource[mask]
           texts = texts[,c(1,2,6,5,3,4)]} else texts = texts[,c(1,2,5,3,4)]
         
-        # shorten texts
-        texts$text = substr(texts$text, 0, 32000)
-        
+        # shorten (and translate) texts
+        texts$text = substr(texts$text, 0, max_text_length)
+        if(translate){
+          texts$title = toGerman2(texts$title, source_lang=source_lang, auth_key=deepl_key)
+          texts$text = toGerman2(texts$text, source_lang=source_lang, auth_key=deepl_key)
+        }
+
         # return 
         texts
       }else ids
@@ -519,6 +541,22 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
     temp
     
   })
+  
+  # only return ids if no foldername was provided
+  if(is.null(foldername)){
+    
+    # rearrange list
+    out = lapply(1:K, function(k){
+      sapply(1:length(chunks), function(t) out[[t]][,k])
+    })
+    
+    # add names
+    out = lapply(out, function(x){ colnames(x) = as.character(chunks); x })
+    names(out) = tnames
+  }
+  
+  invisible(out)
+}
   
   # only return ids if no foldername was provided
   if(is.null(foldername)){
