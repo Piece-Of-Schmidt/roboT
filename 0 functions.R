@@ -368,7 +368,7 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
   # safety belt
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(missing("corpus") || missing(ldaresult)) stop("Insert correct arguments for corpus and ldaresult")
-  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
+  if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
   
   # is the passed object a textmeta object?
   corp = is.textmeta(corpus)
@@ -429,7 +429,7 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
                            translate=F, source_lang=NULL, deepl_key=NULL){
   
-  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
+  if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
   
   # create data frame
   topwords2 = tosca::topWords(ldaresult$topics, numWords)
@@ -469,7 +469,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics))
   if(!is.null(foldername)) dir.create(foldername)
-  if(translate && is.null(deepl_key)) deepl_key = readLines("data/deepl_key.txt")
+  if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
     
   # get params
   K = nrow(ldaresult$topics)
