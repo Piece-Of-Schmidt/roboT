@@ -33,7 +33,8 @@ plotFreq(corp, wordlist = worte)
 # -------------------------------------------------------------------------
 
 # Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
-stopwords = readLines("stopword_lists/stop_words_en.txt")
+dict_language = "en"
+stopwords = readLines(sprintf("data/stop_words_%s.txt", dict_language))
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
 
 # kurze Dokumente entfernen
