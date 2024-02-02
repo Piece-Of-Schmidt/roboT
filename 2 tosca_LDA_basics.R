@@ -11,7 +11,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 source("0 functions.R")
 
 # Datensatz einladen
-corp = readRDS("example_corpus.rds")
+corp = readRDS("data/example_corpus.rds")
 
 
 
