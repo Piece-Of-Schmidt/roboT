@@ -143,6 +143,7 @@ plotSources = function(corpus, unit="month", ..., smooth=T, span=0.1) {
 
 clean_complete = function(corpus,
                           shorten_meta=T,
+                          remove_na_dates=T,
                           sort_meta=T,
                           min_text_length = 750,
                           max_text_length = quantile(nchar(corpus$text), 0.99),
@@ -162,23 +163,35 @@ clean_complete = function(corpus,
   # Shorten meta data
   if(shorten_meta){
     a = Sys.time()
-    cat("Shorten meta data")
+    cat("Shorten meta data...")
     corpus$metamult = NULL
     corpus$meta = corpus$meta[, names(corpus$meta) %in% c("id","date","title","resource")]
     diff = difftime(Sys.time(), a)
-    cat(" | Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
     gc()
-}
+  }
+  
+  if(remove_na_dates){
+    a = Sys.time()
+    before = nrow(corpus$meta)
+    cat("Remove docs with missing date info...")
+    corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$date)])
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    gc()
+  }
   
   # Reorder meta files
   if(sort_meta){
     a = Sys.time()
-    cat("Reorder meta files")
+    cat("Reorder meta files...")
     corpus$meta = corpus$meta[order(corpus$meta$date),]
     corpus$text = corpus$text[match(corpus$meta$id, names(corpus$text))]
     corpus$meta = corpus$meta[corpus$meta$id %in% names(corpus$text),]
     diff = difftime(Sys.time(), a)
-    cat(" | Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
     gc()
   }
   
@@ -194,7 +207,6 @@ clean_complete = function(corpus,
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
     gc()
-    
   }
   
   # remove too long texts
