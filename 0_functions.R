@@ -155,6 +155,7 @@ clean_complete = function(corpus,
                           check_dups_titles_unit="day",
                           clean_titles=T,
                           utf8=F,
+                          clean_memory=F,
                           hbweltsz=F
 ){
   
@@ -168,7 +169,7 @@ clean_complete = function(corpus,
     corpus$meta = corpus$meta[, names(corpus$meta) %in% c("id","date","title","resource")]
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
-    gc()
+    if(clean_memory) gc()
   }
   
   if(remove_na_dates){
@@ -180,7 +181,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
   }
   
   # Reorder meta files
@@ -192,7 +193,7 @@ clean_complete = function(corpus,
     corpus$meta = corpus$meta[corpus$meta$id %in% names(corpus$text),]
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
-    gc()
+    if(clean_memory) gc()
   }
   
   # Restrict corpus to long texts
@@ -206,7 +207,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
   }
   
   # remove too long texts
@@ -219,7 +220,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
   }
   
   # Redefine resources
@@ -232,7 +233,7 @@ clean_complete = function(corpus,
     corpus$meta$resource = corpus$meta$source_indicator
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
-    gc()
+    if(clean_memory) gc()
   }
   
   # Convert texts and titles to utf8
@@ -243,7 +244,7 @@ clean_complete = function(corpus,
     corpus$meta$title = sapply(corpus$meta$title, utf8::as_utf8)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
-    gc()
+    if(clean_memory) gc()
   }
   
   # -------------------------------------------------------------------------
@@ -262,7 +263,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf("| Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
     
   }
   
@@ -277,7 +278,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
     
   }
   
@@ -291,7 +292,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
   }
   
   # Filter Titles: Alle Texte raus, die am selben Tag erschienen sind und denselben Title haben
@@ -304,7 +305,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    gc()
+    if(clean_memory) gc()
   }
   
   # Titles aufraeumen: Mehrfache Leerzeichen raus
@@ -315,7 +316,7 @@ clean_complete = function(corpus,
     corpus$meta$title = gsub("&quot;","'",corpus$meta$title)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n\n")
-    gc()
+    if(clean_memory) gc()
   }
   
   after = length(corpus$text)
