@@ -146,7 +146,7 @@ clean_complete = function(corpus,
                           remove_na_dates=T,
                           sort_meta=T,
                           min_text_length = 750,
-                          max_text_length = quantile(nchar(corpus$text), 0.99),
+                          max_text_length = 0.99,
                           check_dups_id=T,
                           check_dups_duplist=T,
                           check_dups_textleads=120,
@@ -160,7 +160,9 @@ clean_complete = function(corpus,
 ){
   
   before_whole = length(corpus$text)
-  
+  text_chars = nchar(corpus$text)
+  max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
+
   # Shorten meta data
   if(shorten_meta){
     a = Sys.time()
@@ -201,8 +203,9 @@ clean_complete = function(corpus,
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
-    mask = nchar(corpus$text) >= min_text_length
-    corpus = filterID(corpus, names(mask)[mask])
+    mask = text_chars >= min_text_length
+    text_chars = text_chars[mask]
+    corpus = filterID(corpus, names(text_chars))
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
@@ -215,8 +218,9 @@ clean_complete = function(corpus,
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Restrict corpus to short texts (max_length =", max_text_length, "\b)...")
-    mask = nchar(corpus$text) <= max_text_length
-    corpus = filterID(corpus, names(mask)[mask])
+    mask = text_chars <= max_text_length
+    text_chars = text_chars[mask]
+    corpus = filterID(corpus, names(text_chars))
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
