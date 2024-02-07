@@ -204,20 +204,6 @@ clean_complete = function(corpus,
     if(clean_memory) gc()
   }
   
-  # Restrict corpus to long texts
-  if(!is.null(min_text_length)){
-    a = Sys.time()
-    before = nrow(corpus$meta)
-    cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
-    mask = text_chars >= min_text_length
-    text_chars = text_chars[mask]
-    corpus = filterID(corpus, names(text_chars))
-    diff = difftime(Sys.time(), a)
-    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
-    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
-                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    if(clean_memory) gc()
-  }
   
   # remove too long texts
   if(!is.null(max_text_length)){
@@ -233,6 +219,20 @@ clean_complete = function(corpus,
     if(clean_memory) gc()
   }
   
+  # Restrict corpus to long texts
+  if(!is.null(min_text_length)){
+    a = Sys.time()
+    before = nrow(corpus$meta)
+    cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
+    mask = text_chars >= min_text_length
+    text_chars = text_chars[mask]
+    corpus = filterID(corpus, names(text_chars))
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    if(clean_memory) gc()
+  }
   # Redefine resources
   if(hbweltsz){
     cat("Redefine resources...")
