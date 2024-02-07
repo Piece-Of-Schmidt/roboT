@@ -283,7 +283,7 @@ clean_complete = function(corpus,
     before = nrow(corpus$meta)
     cat("Perform tosca::duplist() operation...")
     invisible(capture.output(duplist <- suppressMessages(duplist(corpus))))
-    corpus = filterID(corpus, duplist$notDuplicatedTexts)
+    corpus = filterID(corpus, duplist$uniqueTexts)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
