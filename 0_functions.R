@@ -160,7 +160,13 @@ clean_complete = function(corpus,
 ){
   
   before_whole = length(corpus$text)
-  text_chars = nchar(corpus$text)
+  if(!is.null(min_text_length) || !is.null(max_text_length)){
+    a = Sys.time()
+    cat("Calculate text lengths...")
+    text_chars = nchar(corpus$text)
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
+  }
   max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
 
   # Shorten meta data
