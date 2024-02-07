@@ -570,21 +570,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
   invisible(out)
 }
   
-  # only return ids if no foldername was provided
-  if(is.null(foldername)){
-    
-    # rearrange list
-    out = lapply(1:K, function(k){
-      sapply(1:length(chunks), function(t) out[[t]][,k])
-    })
-    
-    # add names
-    out = lapply(out, function(x){ colnames(x) = as.character(chunks); x })
-    names(out) = tnames
-  }
-  
-  invisible(out)
-}
+
 
 #'topWordsPerUnit
 #'
