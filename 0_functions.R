@@ -117,7 +117,7 @@ filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", message
 
 
 # Plot Sources
-plotSources = function(corpus, unit="month", ..., smooth=T, span=0.1) {
+plotSources = function(corpus, unit="month", area_alpha=0.6, area_position="dodge", ..., smooth=T, span=0.1) {
   
   # count
   data = corpus$meta %>%
@@ -127,7 +127,7 @@ plotSources = function(corpus, unit="month", ..., smooth=T, span=0.1) {
   # generate plot
   if(smooth){
     p = ggplot(data, aes(date, n, fill=resource))+
-      geom_area(...)+
+      geom_area(alpha=area_alpha, position=area_position,...)+
       geom_smooth(span=span, se=F, alpha=0.8, color="grey2")+ 
       theme_classic()
   }else{
