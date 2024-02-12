@@ -175,6 +175,19 @@ clean_complete = function(corpus,
   }
   max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
 
+  # if corp == "HBWeltSZ": Redefine resources
+  if(hbweltsz){
+    cat("Redefine resources...")
+    a = Sys.time()
+    corpus$meta$source_indicator[!is.na(corpus$meta$source)] = "HB"
+    corpus$meta$source_indicator[!is.na(corpus$meta$resource)] = "Welt"
+    corpus$meta$source_indicator[!is.na(corpus$meta$AnzChar)] = "SZ"
+    corpus$meta$resource = corpus$meta$source_indicator
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
+    if(clean_memory) gc()
+  }
+  
   # Shorten meta data
   if(shorten_meta){
     a = Sys.time()
@@ -210,7 +223,6 @@ clean_complete = function(corpus,
     if(clean_memory) gc()
   }
   
-  
   # remove too long texts
   if(!is.null(max_text_length)){
     a = Sys.time()
@@ -237,18 +249,6 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    if(clean_memory) gc()
-  }
-  # Redefine resources
-  if(hbweltsz){
-    cat("Redefine resources...")
-    a = Sys.time()
-    corpus$meta$source_indicator[!is.na(corpus$meta$source)] = "HB"
-    corpus$meta$source_indicator[!is.na(corpus$meta$resource)] = "Welt"
-    corpus$meta$source_indicator[!is.na(corpus$meta$AnzChar)] = "SZ"
-    corpus$meta$resource = corpus$meta$source_indicator
-    diff = difftime(Sys.time(), a)
-    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
     if(clean_memory) gc()
   }
   
