@@ -150,6 +150,8 @@ plotSources = function(corpus, unit="month", area_alpha=0.6, area_position="iden
 clean_complete = function(corpus,
                           shorten_meta=T,
                           remove_na_dates=T,
+                          remove_na_sources=T,
+                          remove_na_titles=T,
                           sort_meta=T,
                           min_text_length = 750,
                           max_text_length = 0.99,
@@ -198,12 +200,39 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
     if(clean_memory) gc()
   }
-  
+
+  # remove texts with missing date info
   if(remove_na_dates){
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Remove docs with missing date info...")
     corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$date)])
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    if(clean_memory) gc()
+  }
+
+  # remove texts with missing resource info
+  if(remove_na_sources){
+    a = Sys.time()
+    before = nrow(corpus$meta)
+    cat("Remove docs with missing date info...")
+    corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$resource)])
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    if(clean_memory) gc()
+  }
+
+  # remove texts with missing title info
+  if(remove_na_titles){
+    a = Sys.time()
+    before = nrow(corpus$meta)
+    cat("Remove docs with missing date info...")
+    corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$title)])
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
