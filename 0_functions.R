@@ -19,7 +19,7 @@ for(package in packages){
 # -------------------------------------------------------------------------
 
 
-filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F){
+filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, out="text"){
   
   before = nrow(corpus$meta)
   
@@ -35,7 +35,8 @@ filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F){
               sum(!mask), before, before - sum(!mask), 100 * (before - sum(!mask)) / before))
   
   # return
-  invisible(tosca::filterID(corpus, corpus$meta$id[!mask]))
+  if(out=="bin") return(!mask) else return(tosca::filterID(corpus, corpus$meta$id[!mask]))
+  
 }
 
 
