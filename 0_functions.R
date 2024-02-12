@@ -19,21 +19,23 @@ for(package in packages){
 # -------------------------------------------------------------------------
 
 
-filterTitles = function(corpus, pattern, ignore.case=F, print=F){
+filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F){
   
   before = nrow(corpus$meta)
   
   # find dups
-  mask = !tosca::filterWord(corpus$meta$title, pattern, ignore.case=ignore.case, out="bin")
+  if(pattern){
+    mask = tosca::filterWord(text=corpus$meta$title, titles, ignore.case=ignore.case, out="bin")
+  }else mask = corpus$meta$title %in% titles
   
-  if(print){ print(corpus$meta$title[!mask]); cat("\n") }
+  if(print){ print(corpus$meta$title[mask]); cat("\n") }
   
   # print
   cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
-              sum(mask), before, before - sum(mask), 100 * (before - sum(mask)) / before))
+              sum(!mask), before, before - sum(!mask), 100 * (before - sum(!mask)) / before))
   
   # return
-  invisible(tosca::filterID(corpus, corpus$meta$id[mask]))
+  invisible(tosca::filterID(corpus, corpus$meta$id[!mask]))
 }
 
 
