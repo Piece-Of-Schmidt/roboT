@@ -19,7 +19,7 @@ for(package in packages){
 # -------------------------------------------------------------------------
 
 
-filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, out="text"){
+filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, invert=T, out="text"){
   
   before = nrow(corpus$meta)
   
@@ -30,12 +30,15 @@ filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, out="
   
   if(print){ print(corpus$meta$title[mask]); cat("\n") }
   
+  # invert mask
+  if(invert) mask = !mask
+  
   # print
   cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
-              sum(!mask), before, before - sum(!mask), 100 * (before - sum(!mask)) / before))
+              sum(mask), before, before - sum(mask), 100 * (before - sum(mask)) / before))
   
   # return
-  if(out=="bin") return(!mask) else return(tosca::filterID(corpus, corpus$meta$id[!mask]))
+  if(out=="bin") return(mask) else return(tosca::filterID(corpus, corpus$meta$id[mask]))
   
 }
 
