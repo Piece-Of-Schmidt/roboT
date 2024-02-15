@@ -490,7 +490,7 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
   if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
   
   # create data frame
-  topwords2 = tosca::topWords(ldaresult$topics, numWords)
+  topwords = tosca::topWords(ldaresult$topics, numWords)
   if(translate){
     topwords = toGerman2(topwords, source_lang=source_lang, auth_key=deepl_key)
     topwords = matrix(topwords, ncol = nrow(ldaresult$topics))
