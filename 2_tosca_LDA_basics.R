@@ -8,7 +8,7 @@
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # aktiviere erweierte Funktionen
-source("0 functions.R")
+source("0_functions.R")
 
 # Datensatz einladen
 corp = readRDS("data/example_corpus.rds")
