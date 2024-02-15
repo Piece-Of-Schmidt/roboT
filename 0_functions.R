@@ -519,16 +519,15 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #'@param tnames (optional) desired topic names
 #'@param foldername name of folder in which the top texts are saved in. If NULL (default), texts are not saved locally
 #'
-topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=NULL, foldername=NULL,
+topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics)), foldername=NULL,
                            translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
   
   # safety belt
   if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics))
   if(!is.null(foldername)) dir.create(foldername)
   if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
-    
+  
   # get params
   K = nrow(ldaresult$topics)
   doc = ldaresult$document_sums
@@ -554,7 +553,9 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
     temp = apply(docs_per_topic, 1, function(topic){
       
       # reorder theta values (decreasing=T)
-      proms = order(topic, decreasing = T)[seq(nTopTexts)]
+      proms = order(topic, decreasing = T)
+      relevant_docs = seq(min(nTopTexts, length(proms)))
+      proms = proms[relevant_docs]
       theta_vals = topic[proms]
       
       # get corresponding text IDs
@@ -567,7 +568,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
         texts = showTexts(corpus, ids)
         
         # add theta value
-        texts[, "topic_relevance"] = round(theta_vals[seq(nTopTexts)], 2)
+        texts[, "topic_relevance"] = round(theta_vals[relevant_docs], 2)
         
         # add resource
         if("resource" %in% names(corpus$meta)){
@@ -581,7 +582,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
           texts$title = toGerman2(texts$title, source_lang=source_lang, auth_key=deepl_key)
           texts$text = toGerman2(texts$text, source_lang=source_lang, auth_key=deepl_key)
         }
-
+        
         # return 
         texts
       }else ids
