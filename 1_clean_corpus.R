@@ -4,7 +4,7 @@ require(tosca)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # load functions
-source("0 functions.R")
+source("0_functions.R")
 
 corpus = readRDS("data/example_corpus.rds")
 corpus
