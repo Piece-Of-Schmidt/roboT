@@ -637,12 +637,13 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
   tw = ldaresult$topics
-  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(tw))
   
   # get params
   K = nrow(tw)
+  if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(tw))
   assignments = ldaresult$assignments
   vocab = colnames(tw)
+  ldaID = names(docs)
   
   # just to be sure: reorder meta so it matches the order of the ldaIDs
   corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
