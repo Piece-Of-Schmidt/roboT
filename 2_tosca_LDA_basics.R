@@ -113,10 +113,15 @@ write.csv2(plot, "plot.csv")
 
 
 # Top Texts per unit (hier: quarter) - pro Quartal die relevantesten Texte pro Topic
-topTextsPerUnit(corpus = corp, ldaresult = result_K8, ldaID = names(docs), unit = "quarter", foldername = "TopTextsPerUnit")
+K_value = 8
+result = get(paste0("result_K", K_value))
+topTextsPerUnit(corpus = corp, ldaresult = result, ldaID = names(docs), unit = "quarter", foldername = paste0("K", K_value, "/TopTextsPerUnit"))
 
 # Top Words per unit (hier: quarter) - pro Quartal die relevantesten Worte pro Topic
-topWordsPerUnit(corpus = corp, ldaresult = result_K8, docs = docs, unit = "quarter", file = "TopWordsPerUnit")
+K_value = 8
+result = get(paste0("result_K", K_value))
+topWordsPerUnit(corpus = corp, ldaresult = result, docs = docs, unit = "quarter", file = paste0("K", K_value, "/TopWordsPerUnit"))
+
 
 
 
