@@ -1,6 +1,3 @@
-# install.packages("tosca")
-library(tosca)
-
 
 # -------------------------------------------------------------------------
 # preparation
