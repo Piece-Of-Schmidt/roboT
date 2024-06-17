@@ -231,7 +231,7 @@ clean_complete = function(corpus,
   if(remove_na_titles){
     a = Sys.time()
     before = nrow(corpus$meta)
-    cat("Remove docs with missing date info...")
+    cat("Remove docs with missing title info...")
     corpus = filterID(corpus, corpus$meta$id[!is.na(corpus$meta$title)])
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
