@@ -1,7 +1,7 @@
 require(tosca)
 
 # set wd
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) <- aktivieren um Verzeichnis, in dem dieses Skript liegt, zum Working Directory zu machen (empfohlen)
 
 # load functions
 source("0_functions.R")
