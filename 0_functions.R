@@ -175,7 +175,6 @@ clean_complete = function(corpus,
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
   }
-  max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
 
   # if corp == "HBWeltSZ": Redefine resources
   if(hbweltsz){
@@ -255,6 +254,7 @@ clean_complete = function(corpus,
   # remove too long texts
   if(!is.null(max_text_length)){
     a = Sys.time()
+    max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
     before = nrow(corpus$meta)
     cat("Restrict corpus to short texts (max_length =", max_text_length, "\b)...")
     mask = text_chars <= max_text_length
