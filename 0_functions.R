@@ -540,7 +540,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
   chunks = unique(floor_dates)
   
   # for every date chunk do the following
-  progress.initialize(chunks)
+  # progress.initialize(chunks)
   out = lapply(chunks, function(chunk){
     
     # find all docs from that period
@@ -596,7 +596,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
     }
     
     # show progress and return
-    progress.indicate()
+    # progress.indicate()
     temp
     
   })
@@ -899,6 +899,9 @@ is.textmeta = function(obj){
   is.list(obj) && all(c("meta","text") %in% names(obj))
 }
 
+
+
+# --------------------------------------------------------------------------------------------
 
 
 #'progress.initialize
