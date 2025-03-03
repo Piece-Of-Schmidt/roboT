@@ -43,7 +43,7 @@ filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, inver
 }
 
 
-filterDups_titles = function(corpus, unit = "day", message=T) {
+filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T) {
   
   # Sicherstellen, dass das Eingabeformat korrekt ist
   # if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
@@ -63,6 +63,9 @@ filterDups_titles = function(corpus, unit = "day", message=T) {
   date_chunks = if (unit == "all") "2000-01-01" else unique(lubridate::floor_date(corpus$meta$date, unit))
   floor_dates = if (unit == "all") rep("2000-01-01", nrow(corpus$meta)) else lubridate::floor_date(corpus$meta$date, unit)
   
+  # controle case
+  if(ignore.case) corpus$meta$title = tolower(corpus$meta$title)
+
   # find dups
   dups = unlist(sapply(date_chunks, function(chunk) {
     mask = floor_dates == chunk
@@ -80,7 +83,7 @@ filterDups_titles = function(corpus, unit = "day", message=T) {
 }
 
 
-filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", message=T) {
+filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", ignore.case=F, message=T) {
   
   # if (!is.list(corpus) || !'text' %in% names(corpus) || !'meta' %in% names(corpus)) {
   #   stop("Invalid corpus format")
@@ -91,6 +94,9 @@ filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", message
   # Vorbereitung der Daten
   leads = substr(corpus$text, 1, checkFirstChars)
   ids = names(corpus$text)
+
+  # controle case
+  if(ignore.case) leads = tolower(leads)
   
   if (unit != "all") {
     dates = corpus$meta$date[match(ids, corpus$meta$id)]
@@ -161,6 +167,7 @@ clean_complete = function(corpus,
                           check_dups_titles=T,
                           check_dups_textleads_unit="week",
                           check_dups_titles_unit="day",
+                          check_dups_ignore_case=F,
                           clean_titles=T,
                           utf8=F,
                           clean_memory=F,
@@ -332,7 +339,7 @@ clean_complete = function(corpus,
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Filter Leads...")
-    corpus = filterDups_leads(corpus, check_dups_textleads, check_dups_textleads_unit, message=F)
+    corpus = filterDups_leads(corpus, check_dups_textleads, check_dups_textleads_unit, ignore.case=check_dups_ignore_case, message=F)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
@@ -345,7 +352,7 @@ clean_complete = function(corpus,
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Filter Titles...")
-    corpus = filterDups_titles(corpus, check_dups_titles_unit, message=F)
+    corpus = filterDups_titles(corpus, check_dups_titles_unit, ignore.case=check_dups_ignore_case, message=F)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
