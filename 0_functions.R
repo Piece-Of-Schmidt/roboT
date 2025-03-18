@@ -154,10 +154,10 @@ plotSources = function(corpus, unit="month", area_alpha=0.3, area_position="iden
 
 
 clean_complete = function(corpus,
-                          shorten_meta=T,
-                          remove_na_dates=T,
-                          remove_na_sources=T,
-                          remove_na_titles=T,
+                          shorten_meta=F,
+                          remove_na_dates=F,
+                          remove_na_sources=F,
+                          remove_na_titles=F,
                           sort_meta=T,
                           min_text_length = 750,
                           max_text_length = 0.99,
@@ -183,6 +183,37 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
   }
 
+  
+  # remove too long texts
+  if(!is.null(max_text_length)){
+    a = Sys.time()
+    max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length, na.rm=T) else max_text_length
+    before = nrow(corpus$meta)
+    cat("Restrict corpus to short texts (max_length =", max_text_length, "\b)...")
+    mask = text_chars <= max_text_length
+    text_chars = text_chars[mask]
+    corpus = filterID(corpus, names(text_chars))
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    if(clean_memory) gc()
+  }
+  
+  # Restrict corpus to long texts
+  if(!is.null(min_text_length)){
+    a = Sys.time()
+    before = nrow(corpus$meta)
+    cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
+    mask = text_chars >= min_text_length
+    text_chars = text_chars[mask]
+    corpus = filterID(corpus, names(text_chars))
+    diff = difftime(Sys.time(), a)
+    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
+    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
+                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
+    if(clean_memory) gc()
+  }
+  
   # if corp == "HBWeltSZ": Redefine resources
   if(hbweltsz){
     cat("Redefine resources...")
@@ -258,36 +289,6 @@ clean_complete = function(corpus,
     if(clean_memory) gc()
   }
   
-  # remove too long texts
-  if(!is.null(max_text_length)){
-    a = Sys.time()
-    max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length) else max_text_length
-    before = nrow(corpus$meta)
-    cat("Restrict corpus to short texts (max_length =", max_text_length, "\b)...")
-    mask = text_chars <= max_text_length
-    text_chars = text_chars[mask]
-    corpus = filterID(corpus, names(text_chars))
-    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
-    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
-                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    if(clean_memory) gc()
-  }
-  
-  # Restrict corpus to long texts
-  if(!is.null(min_text_length)){
-    a = Sys.time()
-    before = nrow(corpus$meta)
-    cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
-    mask = text_chars >= min_text_length
-    text_chars = text_chars[mask]
-    corpus = filterID(corpus, names(text_chars))
-    diff = difftime(Sys.time(), a)
-    cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
-    cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
-                nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    if(clean_memory) gc()
-  }
-  
   # Convert texts and titles to utf8
   if(utf8){
     a = Sys.time()
@@ -316,7 +317,6 @@ clean_complete = function(corpus,
     cat(sprintf("| Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
     if(clean_memory) gc()
-    
   }
   
   # duplist
@@ -330,8 +330,7 @@ clean_complete = function(corpus,
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
-    if(clean_memory) gc()
-    
+    if(clean_memory) gc() 
   }
   
   # Filter Leads: Texte raus, die in den ersten X Zeichen uebereinstimmen
