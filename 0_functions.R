@@ -1,6 +1,6 @@
 # install and/or load packages
 
-packages = c("lubridate","tosca","writexl", "dplyr", "utf8", "ggplot2", "stringi", "deeplr")
+packages = c("lubridate","tosca","writexl", "dplyr", "utf8", "ggplot2", "deeplr")
 for(package in packages){
   
   load_package = T
@@ -170,6 +170,7 @@ clean_complete = function(corpus,
                           check_dups_ignore_case=F,
                           clean_titles=T,
                           utf8=F,
+                          calculate_text_len_type="bytes",
                           clean_memory=F,
                           hbweltsz=F
 ){
@@ -178,7 +179,7 @@ clean_complete = function(corpus,
   if(!is.null(min_text_length) || !is.null(max_text_length)){
     a = Sys.time()
     cat("Calculate text lengths...")
-    text_chars = stringi::stri_length(corpus$text)
+    text_chars = nchar(unlist(corpus$text), type=calculate_text_len_type)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
   }
