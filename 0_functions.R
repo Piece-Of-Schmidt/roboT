@@ -378,6 +378,37 @@ clean_complete = function(corpus,
   return(corpus)
 }
 
+even_spikes = function(
+  corp,
+  unit = "month",
+  reference = "mean",
+  fct = 1,
+  seed = 1337){
+  
+  # calculate date chunks
+  floordates = floor_date(as.Date(corp$meta$date), unit=unit); dates_table = table(floordates)
+  med = do.call(reference, list(dates_table)); se = sqrt(var(dates_table)); thresh = med + se*fct
+  rel_chunks_bool = dates_table >= thresh; rel_chunks = names(dates_table)[rel_chunks_bool]
+  
+  # iterate through chunks
+  samples = lapply(rel_chunks, \(chunk){
+    sub = subset(corp$meta, floordates==chunk, select="id", drop=T)
+    set.seed(seed)
+    filterID(corp, sample(sub, min(length(sub), thresh)))
+  })
+  
+  # merge old and new data
+  data = mergeTextmeta(
+    append(
+      samples,
+      list(filterID(corp, corp$meta$id[!floordates %in% rel_chunks]))))
+  
+  # order data
+  data$meta = data$meta[order(data$meta$date),]
+  data$text = data$text[data$meta$id]
+  
+  return(data)
+}
 
 # -------------------------------------------------------------------------
 # LDA AUSWERTUNG
