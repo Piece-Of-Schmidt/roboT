@@ -1,3 +1,5 @@
+library(dplyr)
+
 # remove texts based on specific title, like "Leserbriefe" or "Stocks today"
 filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, invert=T, out="text"){
   
@@ -39,7 +41,7 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
 
 
 # removes text duplicates based on a text's title
-filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T) {
+filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T, verbose=F) {
   
   # Sicherstellen, dass das Eingabeformat korrekt ist
   # if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
@@ -69,9 +71,14 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T) {
   }, simplify = T))
   
   # print
-  if(message){
+  if(message & verbose){
     cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
                 sum(!dups), before, before - sum(!dups), 100 * (before - sum(!dups)) / before))
+  }
+  if(verbose){
+    cat("Show 10 most prominent titles (which have been removed)\n")
+    print(cbind(sort(table(corpus$meta$title[dups]), decreasing=T)[1:10]))
+    cat("\n")
   }
   
   # return
@@ -80,7 +87,7 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T) {
 
 
 # removes text duplicates based on first X characters of a text
-filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", ignore.case=F, message=T) {
+filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", ignore.case=F, message=T, verbose=F) {
   
   # if (!is.list(corpus) || !'text' %in% names(corpus) || !'meta' %in% names(corpus)) {
   #   stop("Invalid corpus format")
@@ -120,5 +127,11 @@ filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", ignore.
                 length(ids), before, before - length(ids), 100 * (before - length(ids)) / before))
     
   }
+  if(verbose){
+    cat("Show 10 most prominent leads (which have identified documents as duplicates)")
+    print(cbind(sort(table(paste0(df$leads[df$ids %in% setdiff(df$ids, ids)], "...")), decreasing=T)[1:10]))
+    cat("\n")
+  }
+  
   return(tosca::filterID(corpus, id = ids, filtermeta = TRUE))
 }
