@@ -131,7 +131,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
                            translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
   
   # safety belt
-  if(missing("corpus") | missing(ldaresult)|!robot::is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
+  if(missing("corpus") | missing(ldaresult)|!is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
   if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
   if(!is.null(foldername)) dir.create(foldername)
   if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
