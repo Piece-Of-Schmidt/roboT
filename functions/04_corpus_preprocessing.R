@@ -1,21 +1,28 @@
+library(lubridate)
+
 # Plot Sources
-plotSources = function(corpus, unit="month", area_alpha=0.3, area_position="identity", ..., smooth=T, span=0.1, se=T) {
+plotSources = function(corpus, category="resource", unit="month", area_alpha=0.3, area_position="identity", ..., smooth=T, span=0.1, se=T) {
+  
+  # rename column of interest
+  corpus$meta$category_to_group_after = corpus$meta[,category]
   
   # count
   data = corpus$meta %>%
     mutate(date = floor_date(date, unit)) %>%
-    count(date, resource)
+    count(date, category_to_group_after)
   
   # generate plot
   if(smooth){
-    p = ggplot(data, aes(date, n, fill=resource, color=resource))+
+    p = ggplot(data, aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
       geom_area(alpha=area_alpha, position=area_position,...)+
       geom_smooth(span=span, se=se, alpha=0.8)+ 
-      theme_classic()
+      theme_classic()+
+      labs(color = category, fill = category)
   }else{
-    p = ggplot(data, aes(date, n, fill=resource, color=resource))+
+    p = ggplot(data, aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
       geom_area(alpha=area_alpha, position=area_position,...)+
-      theme_classic()
+      theme_classic()+
+      labs(color = category, fill = category)
   }
   print(p)
   
