@@ -9,7 +9,7 @@ clean_complete = function(
     min_text_length = 0, # 750
     max_text_length = 1, # 0.99
     check_dups_id=T,
-    check_dups_duplist=T,
+    check_dups_duplist=F,
     check_dups_textleads=120,
     check_dups_titles=T,
     check_dups_textleads_unit="week",
@@ -19,7 +19,8 @@ clean_complete = function(
     utf8=F,
     calculate_text_len_type="bytes",
     clean_memory=F,
-    hbweltsz=F
+    hbweltsz=F,
+    verbose=F
 ){
   
   # calculate text lengths based on 'calculate_text_len_type' method (default 'bytes')
@@ -206,7 +207,7 @@ clean_complete = function(
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Filter Leads...")
-    corpus = filterDups_leads(corpus, check_dups_textleads, check_dups_textleads_unit, ignore.case=check_dups_ignore_case, message=F)
+    corpus = filterDups_leads(corpus, check_dups_textleads, check_dups_textleads_unit, ignore.case=check_dups_ignore_case, message=F, verbose=verbose)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
@@ -219,7 +220,7 @@ clean_complete = function(
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Filter Titles...")
-    corpus = filterDups_titles(corpus, check_dups_titles_unit, ignore.case=check_dups_ignore_case, message=F)
+    corpus = filterDups_titles(corpus, check_dups_titles_unit, ignore.case=check_dups_ignore_case, message=F, verbose=verbose)
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
