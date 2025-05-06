@@ -34,11 +34,11 @@ clean_complete = function(
   
   
   # remove too long texts
-  if(!is.null(max_text_length)){
+  if(!is.null(max_text_length) & max_text_length != 1){
     a = Sys.time()
     max_text_length = if(max_text_length<=1) quantile(text_chars, max_text_length, na.rm=T) else max_text_length
     before = nrow(corpus$meta)
-    cat("Restrict corpus to short texts (max_length =", max_text_length, "\b)...")
+    cat("Remove long texts (max_length =", max_text_length, "\b)...")
     mask = text_chars <= max_text_length
     text_chars = text_chars[mask]
     corpus = filterID(corpus, names(text_chars))
@@ -49,10 +49,10 @@ clean_complete = function(
   }
   
   # Restrict corpus to long texts
-  if(!is.null(min_text_length)){
+  if(!is.null(min_text_length) & min_text_length != 0){
     a = Sys.time()
     before = nrow(corpus$meta)
-    cat("Restrict corpus to long texts (min_length =", min_text_length, "\b)...")
+    cat("Remove short texts (min_length =", min_text_length, "\b)...")
     mask = text_chars >= min_text_length
     text_chars = text_chars[mask]
     corpus = filterID(corpus, names(text_chars))
