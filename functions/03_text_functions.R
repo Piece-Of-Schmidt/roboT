@@ -51,3 +51,53 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
   return(out)
   
 }
+
+
+# print dataframe in console
+print_dataframe = function(df,
+                              buffer    = 2,      # kleiner Puffer je Spalte
+                              sep       = " | ",  # Trenner zwischen Spalten
+                              line_char = "-") {  # Zeichen für die Trennlinie
+  stopifnot(is.data.frame(df))
+  if (ncol(df) < 2)
+    stop("Dataframe has to have at least 2 columns")
+  
+  # --- Breiten berechnen ----------------------------------------------------
+  total_width = getOption("width")                # full width
+  n_cols      = ncol(df)
+  avail_width = total_width - (n_cols - 1) * nchar(sep)
+  col_width   = floor(avail_width / n_cols) - buffer
+  if (col_width < 5)
+    stop("too many columns / too tiny console")
+  
+  # Hilfsfunktion: Text → Vektor umgebrochener Zeilen, \n bleibt erhalten
+  wrap_preserve = function(txt) {
+    paragraphs = strsplit(as.character(txt), "\n", fixed = TRUE)[[1]]
+    unlist(lapply(paragraphs, function(p)
+      if (p == "") "" else strwrap(p, width = col_width)),
+      use.names = FALSE)
+  }
+  
+  divider = paste(rep(substr(line_char, 1, 1), total_width), collapse = "")
+  
+  
+  # print -------------------------------------------------------------------
+  
+  for (row in seq_len(nrow(df))) {
+    # Zeilen‐Listen pro Spalte
+    col_lines = lapply(df[row, ], wrap_preserve)
+    max_lines = max(lengths(col_lines))
+    
+    # kürzere Spalten mit Leerzeilen auffüllen
+    col_lines = lapply(col_lines, function(x)
+      c(x, rep("", max_lines - length(x))))
+    
+    # Zeile für Zeile drucken
+    for (i in seq_len(max_lines)) {
+      pieces = vapply(col_lines, function(x)
+        sprintf("%-*s", col_width, x[i]), character(1))
+      cat(paste(pieces, collapse = sep), "\n", sep = "")
+    }
+    cat(divider, "\n")
+  }
+}
