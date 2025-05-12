@@ -57,7 +57,9 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
 print_dataframe = function(df,
                               buffer    = 2,      # kleiner Puffer je Spalte
                               sep       = " | ",  # Trenner zwischen Spalten
-                              line_char = "-") {  # Zeichen für die Trennlinie
+                              line_char = "-",    # Zeichen für die Trennlinie
+                              del_special_chars = "\r") {
+                                
   stopifnot(is.data.frame(df))
   if (ncol(df) < 2)
     stop("Dataframe has to have at least 2 columns")
@@ -70,6 +72,11 @@ print_dataframe = function(df,
   if (col_width < 5)
     stop("too many columns / too tiny console")
   
+  # replace
+  if(!is.null(del_special_chars)){
+    df = apply(df, 2, gsub, pattern=del_special_chars, replacement="", fixed=T)
+  }
+
   # Hilfsfunktion: Text → Vektor umgebrochener Zeilen, \n bleibt erhalten
   wrap_preserve = function(txt) {
     paragraphs = strsplit(as.character(txt), "\n", fixed = TRUE)[[1]]
