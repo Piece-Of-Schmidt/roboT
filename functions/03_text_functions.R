@@ -55,27 +55,28 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
 
 # print dataframe in console
 print_dataframe = function(df,
-                               col_prop  = NULL,   # Vektor von Anteilen (0‒1)
-                               buffer    = 2,      # Sicherheits-Abzug je Spalte
-                               sep       = " | ",  # Spaltentrenner
-                               line_char = "-",    # Zeichen für die Trennlinie
-                               del_special_chars = "\r") {
+                           col_prop  = NULL,   # Vektor von Anteilen (0‒1)
+                           buffer    = 2,      # Sicherheits-Abzug je Spalte
+                           sep       = " | ",  # Spaltentrenner
+                           line_char = "-",    # Zeichen für die Trennlinie
+                           del_special_chars = "\r") {
   stopifnot(is.data.frame(df))
   nc = ncol(df)
   if (nc < 2) df = data.frame(df, "")
   
   # --- Anteilsvector interpretieren -----------------------------------------
-  if (is.null(col_prop)) {
-    col_prop = rep(NA_real_, nc)              # alles ungesetzt  → gleich verteilen
-  } else if (length(col_prop) == 1L) {
-    col_prop = c(col_prop, rep(NA_real_, nc - 1))
-  } else if (length(col_prop) != nc) {
-    stop("col_prop muss Länge 1 oder ncol(df) haben.")
-  }
-  
+  # if (is.null(col_prop)) {
+  #   col_prop = rep(NA_real_, nc)              # alles ungesetzt  → gleich verteilen
+  # } else if (length(col_prop) == 1L) {
+  #   col_prop = c(col_prop, rep(NA_real_, nc - 1))
+  # } else if (length(col_prop) != nc) {
+  #   stop("col_prop muss Länge 1 oder ncol(df) haben.")
+  # }
   #  NULL -> NA umwandeln (falls als Liste übergeben)
-  col_prop = vapply(col_prop, function(x) if (is.null(x)) NA_real_ else x,
-                     numeric(1))
+  # col_prop = vapply(col_prop, function(x) if (is.null(x)) NA_real_ else x,
+  #                   numeric(1))
+  
+  col_prop = c(col_prop, rep(NA_real_, nc))[1:nc]
   
   if (any(col_prop < 0 | col_prop > 1, na.rm = TRUE))
     stop("Anteile müssen zwischen 0 und 1 liegen.")
@@ -101,7 +102,7 @@ print_dataframe = function(df,
   diff = avail_width - sum(col_width)
   if (diff > 0) col_width[nc] = col_width[nc] + diff
   
-  if (col_width < 5)
+  if (any(col_width < 5))
     stop("zu viele Spalten / zu kleine Konsole")
   
   # replace characters
@@ -124,16 +125,16 @@ print_dataframe = function(df,
   # --- Ausgabe ---------------------------------------------------------------
   for (row in seq_len(nrow(df))) {
     col_lines = mapply(function(x, w) wrap_preserve(x, w),
-                        df[row, ], col_width,
-                        SIMPLIFY = FALSE)
+                       df[row, ], col_width,
+                       SIMPLIFY = FALSE)
     max_lines = max(lengths(col_lines))
     col_lines = lapply(col_lines, function(x)
       c(x, rep("", max_lines - length(x))))
     
     for (i in seq_len(max_lines)) {
       pieces = vapply(seq_along(col_lines),
-                       function(j) sprintf("%-*s", col_width[j], col_lines[[j]][i]),
-                       character(1))
+                      function(j) sprintf("%-*s", col_width[j], col_lines[[j]][i]),
+                      character(1))
       cat(paste(pieces, collapse = sep), "\n", sep = "")
     }
     cat(divider, "\n")
