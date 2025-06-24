@@ -3,14 +3,12 @@
 # preparation
 # -------------------------------------------------------------------------
 
-# ggf. working directory festlegen
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-
-# aktiviere erweierte Funktionen
-source("0_functions.R")
+# Paket laden
+library(tosca)
+library(rOboT)
 
 # Datensatz einladen
-corp = readRDS("data/example_corpus.rds")
+corp = example_corpus
 
 
 
@@ -60,7 +58,7 @@ saveRDS(docs, "docs.rds") # -> Objekt speichern. Das brauchen wir spaeter noch b
 # LDA rechnen
 # -------------------------------------------------------------------------
 
-K_WERTE = c(8,10) # <- probiere hier verschiedene K-Werte aus
+K_WERTE = c(8,10) # <- probieren Sie hier verschiedene K-Werte aus
 
 for(k in K_WERTE){
   
