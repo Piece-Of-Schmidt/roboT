@@ -29,9 +29,8 @@ plotFreq(corp, wordlist = worte)
 # Korpus fuer LDA vorbereiten
 # -------------------------------------------------------------------------
 
-# Korpus tokenisieren - verwende alternative (deutsche) Stopword-Liste
-dict_language = "en"
-stopwords = readLines(sprintf("data/stop_words_%s.txt", dict_language))
+# Korpus tokenisieren
+stopwords = stop_words_en # stop_words_de fuer deutsche Liste, etc.
 tokenizedCorpus = cleanTexts(object=corp, sw=stopwords)
 
 # kurze Dokumente entfernen
