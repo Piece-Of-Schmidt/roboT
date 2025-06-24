@@ -1,5 +1,5 @@
 Package: roboT
-Title: r(egular) O(perations) b(ased) o(n) T(osca)
+Title: r(egular) o(perations) b(ased) o(n) T(osca)
 Version: 0.0.0.9000
 Authors@R: 
     person("Tobias", "Schmidt", , "tobias3.schmidt@tu-dortmund.de", role = c("aut", "cre"))
