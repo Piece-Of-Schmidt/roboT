@@ -1,6 +1,6 @@
 # Paket laden
 library(tosca)
-library(rOboT)
+library(roboT)
 
 # eigenen Korpus einladen
 corpus = readRDS("data/example_corpus.rds")
