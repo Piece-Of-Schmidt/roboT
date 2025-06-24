@@ -5,7 +5,7 @@
 
 # Paket laden
 library(tosca)
-library(rOboT)
+library(roboT)
 
 # Datensatz einladen
 corp = example_corpus
