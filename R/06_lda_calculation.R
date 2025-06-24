@@ -40,7 +40,7 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 
   # FINAL: create plot
   if(plot){
-    print(ggplot2::ggplot(merged_data, aes(x = date, y = doc_count, color = group)) +
+    print(ggplot2::ggplot(merged_data, ggplot2::aes(x = date, y = doc_count, color = group)) +
             ggplot2::geom_smooth(se=F, span=0.1) +
             ggplot2::facet_wrap(~ topic) +
             ggplot2::theme_minimal() +

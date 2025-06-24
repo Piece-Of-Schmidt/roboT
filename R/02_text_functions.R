@@ -93,6 +93,7 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
 #' @param line_char Character used to draw row separators (default: `"-"`).
 #' @param del_special_chars Character pattern to remove from cells (e.g. `"\r"`). Set to `NULL` to skip.
 #' @return No return value. Output is printed to the console.
+#' @importFrom stats setNames
 #' @export
 #'
 #' @examples
@@ -111,7 +112,7 @@ print_dataframe = function(df,
   col_prop = c(col_prop, rep(NA_real_, nc))[1:nc]
 
   if (any(col_prop < 0 | col_prop > 1, na.rm = TRUE))
-    stop("Anteile müssen zwischen 0 und 1 liegen.")
+    stop("Anteile muessen zwischen 0 und 1 liegen.")
 
   fixed_sum   = sum(col_prop, na.rm = TRUE)
   num_missing = sum(is.na(col_prop))
@@ -122,7 +123,7 @@ print_dataframe = function(df,
   if (num_missing > 0) {
     col_prop[is.na(col_prop)] = (1 - fixed_sum) / num_missing
   } else if (abs(fixed_sum - 1) > .Machine$double.eps^0.5) {
-    stop("Anteile müssen sich auf 1 (= 100 %) addieren.")
+    stop("Anteile muessen sich auf 1 (= 100 %) addieren.")
   }
 
   # --- Spaltenbreiten berechnen ---------------------------------------------

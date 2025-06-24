@@ -49,6 +49,7 @@ filterTitles = function(corpus, titles, pattern=F, ignore.case=F, print=F, inver
 #' @param lower_thresh Lower threshold. Either a number of tokens or a quantile (e.g. `0.05`).
 #' @param upper_thresh Upper threshold. Either a number of tokens or a quantile (e.g. `0.95`).
 #' @return A filtered `textmeta` object containing only texts within the given range.
+#' @importFrom stats quantile
 #' @export
 #'
 #' @examples

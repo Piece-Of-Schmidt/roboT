@@ -27,6 +27,8 @@
 #' @param verbose Logical. Print detailed info on removed duplicates.
 #'
 #' @return A cleaned `textmeta` object, reduced to documents meeting all constraints.
+#' @importFrom stats quantile
+#' @importFrom utils capture.output
 #' @export
 #'
 #' @examples

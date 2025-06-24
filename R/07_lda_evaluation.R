@@ -277,6 +277,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #' @param file File path for saving (`.xlsx` or `.csv`).
 #' @param verbose Print progress?
 #' @return A list of top words (and optionally weights) per topic and time slice.
+#' @importFrom utils write.csv
 #' @export
 #'
 #' @examples
@@ -371,6 +372,7 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
 #' @param seed Random seed for reproducibility (default: 1337).
 #' @param savelogs Logical. Save parameter combinations to `"model_logs.csv"`?
 #' @return A list of LDA result objects, named `run1`, `run2`, ...
+#' @importFrom utils write.csv
 #' @export
 #'
 #' @examples

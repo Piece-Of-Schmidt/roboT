@@ -1,3 +1,9 @@
+utils::globalVariables(c(
+  "group", "topic", "doc_count", "category_to_group_after",
+  "n", "topWords"
+))
+
+
 #' Convert a named vector or list to a textmeta object
 #'
 #' Transforms a named character vector or named list into a `textmeta` object

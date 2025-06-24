@@ -33,13 +33,13 @@ plotSources = function(corpus, category="resource", unit="month", area_alpha=0.3
 
   # generate plot
   if(smooth){
-    p = ggplot2::ggplot(data, aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
+    p = ggplot2::ggplot(data, ggplot2::aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
       ggplot2::geom_area(alpha=area_alpha, position=area_position,...)+
       ggplot2::geom_smooth(span=span, se=se, alpha=0.8)+
       ggplot2::theme_classic()+
       ggplot2::labs(color = category, fill = category)
   }else{
-    p = ggplot2::ggplot(data, aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
+    p = ggplot2::ggplot(data, ggplot2::aes(date, n, fill=category_to_group_after, color=category_to_group_after))+
       ggplot2::geom_area(alpha=area_alpha, position=area_position,...)+
       ggplot2::theme_classic()+
       ggplot2::labs(color = category, fill = category)
@@ -61,6 +61,7 @@ plotSources = function(corpus, category="resource", unit="month", area_alpha=0.3
 #' @param fct A numeric multiplier applied to the standard deviation to define the sampling threshold (default: `1`).
 #' @param seed Seed for reproducible random sampling (default: `1337`).
 #' @return A new `textmeta` object where date chunks with unusually high counts are downsampled.
+#' @importFrom stats var
 #' @export
 #'
 #' @examples
