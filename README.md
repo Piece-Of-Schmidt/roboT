@@ -1,8 +1,8 @@
-# rOboT: Regular Operations based on Tosca
+# roboT: regular operations based on Tosca
 
 ### Beschreibung
 
-**rOboT** ist ein R-Paket zur vereinfachten Durchführung und Reproduktion von Analysen auf Basis des [tosca](https://cran.r-project.org/package=tosca)-Frameworks. Es bietet eine Sammlung nützlicher Funktionen zum Korpus-Cleaning, zur LDA-Modellierung sowie zur Visualisierung und Export einfacher Analyseergebnisse. Die Funktionen sind explizit für den Einstieg in die computergestützte Inhaltsanalyse mit `tosca` konzipiert.
+**roboT** ist ein R-Paket zur vereinfachten Durchführung und Reproduktion von Analysen auf Basis des [tosca](https://cran.r-project.org/package=tosca)-Frameworks. Es bietet eine Sammlung nützlicher Funktionen zum Korpus-Cleaning, zur LDA-Modellierung sowie zur Visualisierung und Export einfacher Analyseergebnisse. Die Funktionen sind explizit für den Einstieg in die computergestützte Inhaltsanalyse mit `tosca` konzipiert.
 
 Der Funktionsumfang orientiert sich an typischen Arbeitsschritten in journalistischen und sozialwissenschaftlichen Textanalysen und kann je nach Forschungsfrage flexibel angepasst und erweitert werden.
 
@@ -14,16 +14,16 @@ Der Funktionsumfang orientiert sich an typischen Arbeitsschritten in journalisti
 # devtools ggf. zuerst installieren
 install.packages("devtools")
 
-# rOboT von GitHub installieren
-devtools::install_github("Piece-Of-Schmidt/rOboT", upgrade = "never")
+# roboT von GitHub installieren
+devtools::install_github("Piece-Of-Schmidt/roboT", upgrade = "never")
 
 # Paket laden
-library(rOboT)
+library(roboT)
 ```
 
 ### Skripte
 
-Die Skripte (hinterlegt in `/scripts`) dienen als Vorlage für eine einfache Analyse basierend auf dem tosca-Package und der hiesigen Erweiterung (rOboT). Zur Verwendung:
+Die Skripte (hinterlegt in `/scripts`) dienen als Vorlage für eine einfache Analyse basierend auf dem tosca-Package und der hiesigen Erweiterung (roboT). Zur Verwendung:
 
 * laden Sie die Skripte herunter
 * oeffnen Sie das Skript `1_corpus_cleaning.R`, wenn Sie einen Korpus cleanen wollen, oder das Skript `2_tosca_LDA_basics.R` fuer eine beispielhafte LDA-Analyse
