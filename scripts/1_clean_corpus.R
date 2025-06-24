@@ -1,19 +1,15 @@
-require(tosca)
+# Paket laden
+library(tosca)
+library(rOboT)
 
-# set wd
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) <- aktivieren um Verzeichnis, in dem dieses Skript liegt, zum Working Directory zu machen (empfohlen)
-
-# load functions
-source("0_functions.R")
-
+# eigenen Korpus einladen
 corpus = readRDS("data/example_corpus.rds")
-corpus
 
 # filter by date
 corpus = filterDate(corpus, "1975-01-01", "1995-01-01") # falls nur ein bestimmter Zeitabschnitt gewuenscht ist
 
 # clean corpus automatically
-corpus = clean_complete(corpus) # fuehrt ein Standard-Cleaning fuer den Korpus durch
+corpus = clean_complete(corpus, min_text_length=750, max_text_length=0.99) # fuehrt ein Standard-Cleaning fuer den Korpus durch
 
 
 # -------------------------------------------------------------------------
