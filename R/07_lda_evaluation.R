@@ -282,28 +282,30 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #'
 #' @examples
 #' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, tnames=NULL, values=T, file=NULL, verbose=T){
-
+topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=T, file=NULL, verbose=T){
+  
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
   stopifnot(is.textmeta(corpus))
-
+  
   tw = ldaresult$topics
-
+  
   # get params
   K = nrow(tw)
   if(is.null(tnames)) tnames = paste0("Topic", 1:K, ".", tosca::topWords(tw))
   assignments = ldaresult$assignments
   vocab = colnames(tw)
   ldaID = names(docs)
-
+  
   # just to be sure: reorder meta so it matches the order of the ldaIDs
   corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
-
+  corpus$meta = corpus$meta[order(corpus$meta$date), ]
+  
   # create date chunks
   floor_dates = lubridate::floor_date(corpus$meta$date, unit)
   chunks = unique(floor_dates)
-
+  chunks = chunks[table(floor_dates) > min_docs_per_chunk]
+  
   # for every date chunk do the following
   topicsq = lapply(chunks, function(x){
     if(verbose) cat("\rcalculate top words for chunk", as.character(x))
@@ -313,48 +315,48 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
     colnames(tmp) = vocab
     tmp
   })
-
+  
   topwordsq = lapply(topicsq, topWords, numWords = numWords, values = T)
   names(topwordsq)=chunks
-
+  
   out = lapply(1:K, function(k) sapply(seq(topwordsq), function(t) topwordsq[[t]][[1]][,k]))
   out = lapply(out, function(x){ colnames(x)=as.character(chunks); x})
   names(out) = tnames
-
+  
   # generate values that belong to every top word
   if(values){
-    vals = lapply(1:K, function(k) sapply(seq(topwordsq), function(t) topwordsq[[t]][[2]][,k]))
+    vals = lapply(1:K, function(k){ sapply(seq(topwordsq), function(t) topwordsq[[t]][[2]][,k])})
     vals = lapply(vals, \(v){colnames(v) = as.character(chunks); v} )
     out = list(words=out, vals=vals)
   }
-
+  
   # save locally
   if(!is.null(file)){
-
+    
     if(values){
       words=out[[1]]
       vals=out[[2]]
     } else words=out
-
+    
     # transform to dataframe
     words = lapply(words, as.data.frame)
-
+    
     # filename = paste0(sub(".xlsx","",file),".xlsx")
     if(grepl("xlsx$", file)){
-
+      
       basename = sub("[.]xlsx$", "", file)
       writexl::write_xlsx(words, file)
       if(values) writexl::write_xlsx(vals, paste0(basename, "_values.xlsx"))
-
+      
     }else{
-
+      
       basename = sub("[.]csv$", "", file)
       for(topic_idx in seq_along(words)) write.csv(words[[topic_idx]], paste0(basename, "_topic", topic_idx, ".csv"))
       if(values) for(topic_idx in seq_along(words)) write.csv(vals[[topic_idx]], paste0(basename, "_topic", topic_idx, "_values", ".csv"))
-
+      
     }
   }
-
+  
   invisible(out)
 }
 
@@ -428,3 +430,4 @@ multipleLDAs = function(docs, vocab, ..., func="LDAgen", runs="all", seed=1337, 
   invisible(out)
 
 }
+
