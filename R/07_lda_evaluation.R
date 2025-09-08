@@ -272,17 +272,18 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #' @param docs Document-term list as used in `LDAprep()`.
 #' @param unit Time unit for aggregation (e.g., `"quarter"`).
 #' @param numWords Number of top words per topic (default: 50).
+#' @param min_docs_per_chunk Number of words a chunks has to contain to be considered.
 #' @param tnames Optional topic names.
 #' @param values Logical. Should word weights be included in output?
-#' @param file File path for saving (`.xlsx` or `.csv`).
+#' @param foldername File path for saving lsx files in.
 #' @param verbose Print progress?
 #' @return A list of top words (and optionally weights) per topic and time slice.
 #' @importFrom utils write.csv
 #' @export
 #'
 #' @examples
-#' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=T, file=NULL, verbose=T){
+#' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", foldername = "twpg_k10")
+topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=T, foldername=NULL, verbose=T){
   
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
@@ -331,7 +332,10 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
   }
   
   # save locally
-  if(!is.null(file)){
+  if(!is.null(foldername)){
+    
+    # create folder if not exists
+    if(!dir.exists(foldername)) dir.create(foldername)
     
     if(values){
       words=out[[1]]
@@ -340,21 +344,8 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
     
     # transform to dataframe
     words = lapply(words, as.data.frame)
-    
-    # filename = paste0(sub(".xlsx","",file),".xlsx")
-    if(grepl("xlsx$", file)){
-      
-      basename = sub("[.]xlsx$", "", file)
-      writexl::write_xlsx(words, file)
-      if(values) writexl::write_xlsx(vals, paste0(basename, "_values.xlsx"))
-      
-    }else{
-      
-      basename = sub("[.]csv$", "", file)
-      for(topic_idx in seq_along(words)) write.csv(words[[topic_idx]], paste0(basename, "_topic", topic_idx, ".csv"))
-      if(values) for(topic_idx in seq_along(words)) write.csv(vals[[topic_idx]], paste0(basename, "_topic", topic_idx, "_values", ".csv"))
-      
-    }
+    writexl::write_xlsx(words, file.path(foldername, "topwordspq.xlsx"))
+    if(values) writexl::write_xlsx(vals, file.path(foldername, "topwordspq_values.xlsx"))
   }
   
   invisible(out)
