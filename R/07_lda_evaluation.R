@@ -283,7 +283,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #'
 #' @examples
 #' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=T, file=NULL, verbose=T){
+topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=F, file=NULL, verbose=T){
   
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
