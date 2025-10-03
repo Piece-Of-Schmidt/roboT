@@ -61,7 +61,7 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
       keep = gsub("\\s$","",substr(text, first, last))
 
       # highlight target word
-      if(!is.null(seperator)) sub(pattern, paste(seperator, pattern, seperator), keep) else keep
+      if(!is.null(seperator)) sub(pattern, paste0(seperator, pattern, seperator), keep) else keep
 
     }else ""
 
