@@ -30,12 +30,13 @@ highlight = function(text, pattern, color=31){
 #' @param ignore.case Logical. Should pattern matching be case-insensitive? (default: `FALSE`)
 #' @param perl Logical. Should Perl-compatible regex be used? (default: `FALSE`)
 #' @param offset Logical. Should matches be horizontally aligned? (default: `TRUE`)
+#' @param space_on_seperation Logical. Should spacing be added around seperation symbol? (default: `FALSE`)
 #' @return A character vector with the extracted and optionally highlighted context windows.
 #' @export
 #'
 #' @examples
 #' get_context("this is a test string", "test", windowsize = 10)
-get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.case=F, perl=F, offset=T){
+get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.case=F, perl=F, offset=T, space_on_seperation=F){
 
   out = sapply(texts, function(text){
 
@@ -61,7 +62,13 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
       keep = gsub("\\s$","",substr(text, first, last))
 
       # highlight target word
-      if(!is.null(seperator)) sub(pattern, paste0(seperator, pattern, seperator), keep) else keep
+      if(!is.null(seperator)){
+        insert = ifelse(
+          space_on_seperation,
+          paste(seperator, pattern, seperator),
+          paste0(seperator, pattern, seperator))
+        sub(pattern, insert, keep)
+      } else keep
 
     }else ""
 
