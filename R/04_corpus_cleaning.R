@@ -138,60 +138,72 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T, ver
 #' @param checkFirstChars Number of leading characters to use for duplication detection (default: `120`).
 #' @param unit Time unit to limit comparisons (e.g., `"day"`, `"month"`, `"all"`).
 #' @param ignore.case Logical. Should case be ignored in the comparison?
+#' @param out One of c("obj", "text", "ids", "logical").
 #' @param message Logical. Should summary info be printed? (default: `TRUE`)
 #' @param verbose Logical. Should the most frequent leads be printed? (default: `FALSE`)
-#' @return A filtered `textmeta` object with duplicate leads removed.
+#' @return A filtered `textmeta` object (default) with duplicate leads removed.
 #' @importFrom dplyr arrange group_by filter pull
 #' @importFrom magrittr %>%
 #' @export
 #'
 #' @examples
 #' # corpus <- filterDups_leads(corpus, checkFirstChars = 100, unit = "day")
-filterDups_leads = function(corpus, checkFirstChars = 120, unit = "day", ignore.case=F, message=T, verbose=F) {
 
-  # if (!is.list(corpus) || !'text' %in% names(corpus) || !'meta' %in% names(corpus)) {
-  #   stop("Invalid corpus format")
-  # }
+filterDups_leads = function(obj, checkFirstChars = 120, unit = "day", ignore.case=F, out=c("obj", "text", "ids", "logical"), message=T, verbose=F) {
 
-  before = nrow(corpus$meta)
-
+  out = match.arg(out)
+  texts = if (is.textmeta(obj)) obj$text else obj
+  before = length(texts)
+  
   # Vorbereitung der Daten
-  leads = substr(corpus$text, 1, checkFirstChars)
-  ids = names(corpus$text)
-
-  # controle case
+  leads = substr(texts, 1, checkFirstChars)
+  ids = if(is.null(names(texts))) seq_along(texts) else names(texts)
+  
+  # control case
   if(ignore.case) leads = tolower(leads)
-
-  if (unit != "all") {
-    dates = corpus$meta$date[match(ids, corpus$meta$id)]
-
+  
+  if (is.textmeta(obj) && unit != "all") {
+    dates = obj$meta$date[match(ids, obj$meta$id)]
+    
     # Erstellen eines Datenrahmens
     df = data.frame(leads, ids, dates)
-
+    
     # Konvertieren Sie Datumsangaben je nach Einheit
     df$dates = lubridate::floor_date(df$dates, unit)
-
+    
     # find dups
-    ids = df %>%
+    unique_ids = df %>%
       arrange(dates) %>%
       group_by(dates) %>%
       filter(!duplicated(leads)) %>%
       pull(ids)
+    mask = ids %in% unique_ids
   } else {
-    ids = ids[!duplicated(leads)]
+    mask = !duplicated(leads)
+    unique_ids = ids[mask]
   }
-
+  
   # print
   if(message){
     cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
-                length(ids), before, before - length(ids), 100 * (before - length(ids)) / before))
-
+                length(unique_ids), before, before - length(unique_ids), 100 * (before - length(unique_ids)) / before))
+    
   }
   if(verbose){
-    cat("Show 10 most prominent leads (which have identified documents as duplicates)")
-    print(cbind(sort(table(paste0(df$leads[df$ids %in% setdiff(df$ids, ids)], "...")), decreasing=T)[1:10]))
+    cat("Show 10 most prominent leads (which have identified documents as duplicates)\n")
+    # print(cbind(sort(table(paste0(df$leads[df$ids %in% setdiff(df$ids, ids)], "...")), decreasing=T)[1:10]))
+    leadsdf = data.frame(sort(table(paste0(leads[setdiff(ids, unique_ids)], "...")), decreasing=T)[1:10])
+    roboT::print_dataframe(leadsdf, col_prop = 0.98)
     cat("\n")
   }
-
-  return(tosca::filterID(corpus, id = ids, filtermeta = TRUE))
+  
+  # return
+  if(out=="obj" && is.textmeta(obj)){
+    return(tosca::filterID(obj, id = unique_ids, filtermeta = TRUE))
+  }else if (out == "logical"){
+    return(mask)
+  }else if (out == "ids"){
+    return(unique_ids)
+  }else return(as.character(texts[mask]))
+  
 }
