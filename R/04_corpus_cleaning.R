@@ -193,7 +193,7 @@ filterDups_leads = function(obj, checkFirstChars = 120, unit = "day", ignore.cas
     cat("Show 10 most prominent leads (which have identified documents as duplicates)\n")
     # print(cbind(sort(table(paste0(df$leads[df$ids %in% setdiff(df$ids, ids)], "...")), decreasing=T)[1:10]))
     leadsdf = data.frame(sort(table(paste0(leads[setdiff(ids, unique_ids)], "...")), decreasing=T)[1:10])
-    roboT::print_dataframe(leadsdf, col_prop = 0.98)
+    roboT::print_dataframe(leadsdf, col_prop = c(0.98, 0.02))
     cat("\n")
   }
   
