@@ -103,11 +103,14 @@ multipleLDAs = function(docs, vocab, ..., func="LDAgen", runs="all", seed=1337, 
     d = if(onlyonedoc) docs else docs[[unlist(args[1])]]
     v = if(onlyonevoc) vocab else vocab[[unlist(args[1])]]
 
-    args = as.list(args[,-1])
-    args$documents = d
-    args$vocab = v
+    args = complete_args = as.list(args[,-1])
+    complete_args$documents = d
+    complete_args$vocab = v
 
-    do.call(func, args = args)
+    ldaresult = do.call(func, args = complete_args)
+    ldaresult$hyperparams = args
+
+    ldaresult
 
   })
 
