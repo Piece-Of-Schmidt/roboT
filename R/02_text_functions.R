@@ -157,7 +157,7 @@ print_dataframe = function(df,
       if (p == "") "" else strwrap(p, width = width)),
       use.names = FALSE)
   }
-  divider = paste(rep(substr(line_char, 1, 1), total_width), collapse = "")
+  if(!is.null(line_char)) divider = paste(rep(substr(line_char, 1, 1), total_width), collapse = "")
 
   # add colnames
   df = rbind(setNames(toupper(colnames(df)), colnames(df)), df)
@@ -177,6 +177,7 @@ print_dataframe = function(df,
                       character(1))
       cat(paste(pieces, collapse = sep), "\n", sep = "")
     }
-    cat(divider, "\n")
+    if(is.null(line_char)) cat("\n") else cat(divider, "\n")
   }
 }
+
