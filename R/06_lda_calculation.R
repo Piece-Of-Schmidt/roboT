@@ -56,72 +56,77 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #' Run multiple LDA models with varying parameters
 #'
 #' Automates repeated LDA estimation across a grid of parameter combinations and/or corpora.
-#' Optionally saves parameter log to disk.
+#' Optionally saves parameter log and model outputs to disk.
 #'
-#' @param docs Either a single document list or a list of such objects (as in `LDAprep()`).
-#' @param vocab Either a single vocabulary or a list of vocabularies.
-#' @param ... Named arguments to be passed to `LDAgen()` (e.g., `K`, `alpha`, `beta`).
-#' @param func Function name to use for LDA generation (default: `"LDAgen"`).
+#' @param ... Named arguments to be passed to `LDAgen()` or `RollingLDA()` (e.g., `texts`, `docs`, `K`, `alpha`, `beta`). Arguments must meet requirements of respective function, see ?LDAgen or ?RollingLDA for details.
+#' @param func Function name to use for LDA generation (default: `"LDAgen"`, also works with `RollingLDA`).
 #' @param runs Either `"all"` or an integer to subsample from all grid combinations.
 #' @param seed Random seed for reproducibility (default: 1337).
+#' @param data_vars Names of parameters that are passed through `...` that contain the data to be analysed (e.g. `docs` and `vocab` for LDAgen or `texts` and `dates` for RollingLDA)
 #' @param savelogs Logical. Save parameter combinations to `"model_logs.csv"`?
+#' @param save_on_every_iteration Logical. If true, every model output is saved seperately after a successful iteration.
+#' @param verbose Logical. If True, prints information while processing.
+#' @param calculate Logical. If False, only generates and returns grid of parameters without calculation.
 #' @return A list of LDA result objects, named `run1`, `run2`, ...
 #' @importFrom utils write.csv
 #' @export
 #'
 #' @examples
-#' # multipleLDAs(docs, vocab, K = c(10, 15), alpha = 0.1, runs = 2)
-multipleLDAs = function(docs, vocab, ..., func="LDAgen", runs="all", seed=1337, savelogs=T){
-
-  onlyonedoc = length(unique(lengths(docs))) != 1
-  onlyonevoc = !is.list(vocab)
-
-  stopifnot(onlyonedoc == onlyonevoc)
-
-  model = if(onlyonedoc) 1 else seq(docs)
-
-  lda_vars = list(model=model, ...)
-
-  # build grid
-  grid = expand.grid(lda_vars)
+#' # multipleLDAs(docs, vocab, K = c(10, 15), alpha = c(0.1, 1))
+multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("texts", "dates", "docs", "vocab"), savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
+  
+  # onlyonetext = !is.list(unlist(texts))
+  # ntextfiles = if(onlyonetext) 1 else seq_along(texts)
+  numerics = c("vocab.abs", "K", "alpha", "eta", "seeds", "n", "vocab.rel", "vocab.fallback", "doc.abs", "memory.fallback")
+  
+  # init grid
+  lda_vars = list(...)
+  core_data = names(lda_vars) %in% data_vars
+  grid = expand.grid(lda_vars[!core_data], stringsAsFactors=F)
 
   # take sample
   if(runs != "all"){
     set.seed(seed)
     runs = min(nrow(grid), runs)
     grid = grid[sample(1:nrow(grid), runs), ]
+  } else runs = nrow(grid)
+  
+  if(verbose){
+    cat("Model params (", runs, " runs):\n", sep="")
+    print(grid)
+    cat("\n")
   }
-
-  cat("Model params (", runs, "):\n", sep="")
-  print(grid)
-
-  out = lapply(seq(nrow(grid)), function(idx){
-
-    args = grid[idx,]
-    cat("\nCalculate LDA: ", paste(names(args), args, sep=": ", collapse = ", "))
-
-    d = if(onlyonedoc) docs else docs[[unlist(args[1])]]
-    v = if(onlyonevoc) vocab else vocab[[unlist(args[1])]]
-
-    args = complete_args = as.list(args[,-1])
-    complete_args$documents = d
-    complete_args$vocab = v
-
-    ldaresult = do.call(func, args = complete_args)
-    ldaresult$hyperparams = args
-
-    ldaresult
-
-  })
-
-  model_ids = paste0("run", 1:nrow(grid))
-  names(out) = model_ids
-
+  
+  model_ids = paste0("run", 1:runs)
+  
   if(savelogs){
-    grid = data.frame(id = model_ids, grid)
-    write.csv(grid, "model_logs.csv")
+    savegrid = data.frame(id = model_ids, grid)
+    write.csv(savegrid, "model_logs.csv")
   }
+  
+  if(calculate){
+    out = lapply(seq(runs), function(idx){
+      
+      args = as.list(grid[idx, ])
+      
+      if(verbose) message("\nCalculate LDA: ", paste(names(args), args, sep=": ", collapse = ", "), sep=" ")
+      
+      # build all params
+      modelargs = append(lda_vars[core_data], unlist(args))
+      modelargs[names(modelargs) %in% numerics] = as.numeric(modelargs[names(modelargs) %in% numerics])
+      
+      # call func
+      res = do.call(func, args = modelargs)
+      res$hyperparams = args
+      
+      if (save_on_every_iteration) saveRDS(res, paste0(model_ids[idx], "_out.rds"))
+      res
+      
+    })
+    names(out) = model_ids
 
-  invisible(out)
-
+    return(invisible(out))
+  
+  } else return(grid)
+  
 }
