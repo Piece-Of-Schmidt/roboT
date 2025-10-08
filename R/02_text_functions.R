@@ -177,7 +177,7 @@ print_dataframe = function(df,
                       character(1))
       cat(paste(pieces, collapse = sep), "\n", sep = "")
     }
-    if(is.null(line_char)) cat("\n") else cat(divider, "\n")
+    if(!is.null(line_char)) cat(divider, "\n")
   }
 }
 
