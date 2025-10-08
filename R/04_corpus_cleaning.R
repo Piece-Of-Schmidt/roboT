@@ -77,6 +77,7 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
 #' @param corpus A `textmeta` object.
 #' @param unit Time unit for grouping duplicates (e.g., `"day"`, `"month"`, `"all"`).
 #' @param ignore.case Logical. Should case be ignored when comparing titles?
+#' @param out One of c("obj", "text", "ids", "logical").
 #' @param message Logical. Should summary info be printed? (default: `TRUE`)
 #' @param verbose Logical. Should duplicate titles be listed? (default: `FALSE`)
 #' @return A filtered `textmeta` object without duplicates (based on title).
@@ -84,35 +85,37 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
 #'
 #' @examples
 #' # corpus <- filterDups_titles(corpus, unit = "day", ignore.case = TRUE)
-filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T, verbose=F) {
-
+filterDups_titles = function(corpus, unit = "day", ignore.case=F, out=c("obj", "text", "ids", "logical"), message=T, verbose=F) {
+  
   # Sicherstellen, dass das Eingabeformat korrekt ist
-  # if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
-
+  if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
+  
+  out = match.arg(out)
   before = nrow(corpus$meta)
-
+  
   # corpus sortieren
   corpus$meta = corpus$meta[order(corpus$meta$date),]
   corpus$text = corpus$text[match(corpus$meta$id, names(corpus$text))]
-
+  
   if(any(is.na(corpus$meta$date))){
     message("NAs found in meta data. Corpus is restricted to non-NA cases.")
     corpus = tosca::filterID(corpus, corpus$meta$id[!is.na(corpus$meta$date)])
   }
-
+  
   # Erstellung der Datumsgruppen
-  date_chunks = if (unit == "all") "2000-01-01" else unique(lubridate::floor_date(corpus$meta$date, unit))
-  floor_dates = if (unit == "all") rep("2000-01-01", nrow(corpus$meta)) else lubridate::floor_date(corpus$meta$date, unit)
-
+  date_chunks = if (unit == "all") min(corpus$meta$date) else unique(lubridate::floor_date(corpus$meta$date, unit))
+  floor_dates = if (unit == "all") rep(min(corpus$meta$date), nrow(corpus$meta)) else lubridate::floor_date(corpus$meta$date, unit)
+  
   # controle case
   if(ignore.case) corpus$meta$title = tolower(corpus$meta$title)
-
+  
   # find dups
   dups = unlist(sapply(date_chunks, function(chunk) {
     mask = floor_dates == chunk
     duplicated(corpus$meta$title[mask])
   }, simplify = T))
-
+  unique_ids = corpus$meta$id[!dups]
+  
   # print
   if(message & verbose){
     cat(sprintf("Kept %d out of %d articles | %d removed (%.2f%%)\n",
@@ -120,12 +123,20 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, message=T, ver
   }
   if(verbose){
     cat("Show 10 most prominent titles (which have been removed)\n")
-    print(cbind(sort(table(corpus$meta$title[dups]), decreasing=T)[1:10]))
+    titlesdf = data.frame(sort(table(corpus$meta$title[dups]), decreasing=T)[1:10])
+    print_dataframe(titlesdf, col_prop = c(0.98, 0.02))
     cat("\n")
   }
-
+  
   # return
-  return(tosca::filterID(corpus, corpus$meta$id[!dups]))
+  if(out=="obj" && is.textmeta(obj)){
+    return(tosca::filterID(obj, id = unique_ids, filtermeta = TRUE))
+  }else if (out == "logical"){
+    return(!dups)
+  }else if (out == "ids"){
+    return(unique_ids)
+  }else return(as.character(texts[unique_ids]))
+  
 }
 
 
@@ -204,7 +215,7 @@ filterDups_leads = function(obj, checkFirstChars = 120, unit = "day", ignore.cas
     return(mask)
   }else if (out == "ids"){
     return(unique_ids)
-  }else return(as.character(texts[mask]))
+  }else return(as.character(texts[unique_ids]))
   
 }
 
