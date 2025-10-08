@@ -7,7 +7,7 @@
 #' @param ldaresult Result object from `tosca::LDAgen()`.
 #' @param ldaID Document IDs used in the LDA model.
 #' @param n Number of top words and documents to show (default: 20).
-#' @param elect Integer indices of the topics to inspect. If NULL (default), print all topics.
+#' @param select Integer indices of the topics to inspect. If NULL (default), print all topics.
 #' @return Printed output only; nothing returned.
 #' @export
 #'
@@ -368,3 +368,4 @@ topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50,
   
   invisible(out)
 }
+
