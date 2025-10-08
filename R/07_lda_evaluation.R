@@ -6,29 +6,36 @@
 #' @param corpus A `textmeta` object.
 #' @param ldaresult Result object from `tosca::LDAgen()`.
 #' @param ldaID Document IDs used in the LDA model.
-#' @param topic Integer index of the topic to inspect.
 #' @param n Number of top words and documents to show (default: 20).
+#' @param elect Integer indices of the topics to inspect. If NULL (default), print all topics.
 #' @return Printed output only; nothing returned.
 #' @export
 #'
 #' @examples
 #' # get_tw_and_titles(corpus, ldaresult, ldaID, topic = 3)
-get_tw_and_titles = function(corpus, ldaresult, ldaID, topic = 1, n = 20){
-
+get_tw_and_titles = function(corpus, ldaresult, ldaID, n = 20, select = NULL){
+  
   # get titles
   titles = tosca::topTexts(ldaresult, ldaID, limit=n)
   titles = corpus$meta$title[match(titles, corpus$meta$id)]
-  titles = matrix(titles, nrow=n)[,topic]
-
+  
   # get topwords
-  topwords = tosca::topWords(ldaresult[["topics"]], n)[,topic]
-
+  topwords = tosca::topWords(ldaresult[["topics"]], n)
+  if (!is.null(select)) topwords = topwords[,select, drop=F]
+  
   # print result
-  sep = paste(strrep(" ", max(nchar(topwords)) - nchar(topwords)), "| ")
-
-  out = paste(topwords, sep , titles)
-  print("TopWords | Doc Titles")
-  print(out, width = max(nchar(out)))
+  lapply(seq(ncol(topwords)), function(idx){
+    
+    curr_topwords = topwords[,idx]
+    curr_titles = matrix(titles, nrow=n)[,idx]
+    width = round(max(nchar(curr_topwords)+4)/getOption("width"), 2)
+    
+    cat("\n\n")
+    print_dataframe(data.frame(curr_topwords, curr_titles), line_char = NULL, col_prop = width, sep = " |  ")
+  })
+  
+  # return topwords
+  invisible(topwords)
 }
 
 
