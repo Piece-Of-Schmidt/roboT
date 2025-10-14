@@ -72,7 +72,7 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #' @export
 #'
 #' @examples
-#' # multipleLDAs(docs, vocab, K = seq(10, 50, 10), alpha = c(0.1, 1), seeds = c(100, 200))
+#' # multipleLDAs(docs, vocab, K = seq(10, 50, 10), alpha = c(0.1, 1), seed = c(100, 200))
 multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("x", "texts", "dates", "docs", "vocab"), savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
   
   # onlyonetext = !is.list(unlist(texts))
@@ -129,4 +129,5 @@ multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("
   
   } else return(grid)
   
+
 }
