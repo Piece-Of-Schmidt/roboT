@@ -58,8 +58,8 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #' Automates repeated LDA estimation across a grid of parameter combinations and/or corpora.
 #' Optionally saves parameter log and model outputs to disk.
 #'
-#' @param ... Named arguments to be passed to `LDAgen()` or `RollingLDA()` (e.g., `texts`, `docs`, `K`, `alpha`, `beta`). Arguments must meet requirements of respective function, see ?LDAgen or ?RollingLDA for details.
-#' @param func Function name to use for LDA generation (default: `"LDAgen"`, also works with `RollingLDA`).
+#' @param ... Named arguments to be passed to `LDAgen()`, `RollingLDA()` or `updateRollingLDA()` (e.g., `x`, `texts`, `docs`, `K`, `alpha`, `beta`). Arguments must meet requirements of respective function, see ?LDAgen or ?RollingLDA for details.
+#' @param func Function name to use for LDA generation (default: `"LDAgen()"`, also works with `RollingLDA()` and `updateRollingLDA()`).
 #' @param runs Either `"all"` or an integer to subsample from all grid combinations.
 #' @param seed Random seed for reproducibility (default: 1337).
 #' @param data_vars Names of parameters that are passed through `...` that contain the data to be analysed (e.g. `docs` and `vocab` for LDAgen or `texts` and `dates` for RollingLDA)
@@ -73,7 +73,7 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #'
 #' @examples
 #' # multipleLDAs(docs, vocab, K = c(10, 15), alpha = c(0.1, 1))
-multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("texts", "dates", "docs", "vocab"), savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
+multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("x", "texts", "dates", "docs", "vocab"), savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
   
   # onlyonetext = !is.list(unlist(texts))
   # ntextfiles = if(onlyonetext) 1 else seq_along(texts)
