@@ -62,7 +62,8 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #' @param func Function name to use for LDA generation (default: `"LDAgen()"`, also works with `RollingLDA()` and `updateRollingLDA()`).
 #' @param runs Either `"all"` or an integer to subsample from all grid combinations.
 #' @param seed Random seed for reproducibility (default: 1337).
-#' @param data_vars Names of parameters that are passed through `...` that contain the data to be analysed (e.g. `docs` and `vocab` for LDAgen or `texts` and `dates` for RollingLDA)
+#' @param data_vars Names of parameters that are passed through `...` that contain the data to be analysed (e.g. `docs` and `vocab` for LDAgen or `texts` and `dates` for RollingLDA).
+#' @param filename Name (prefix) of model outputs (e.g. filename=`lda` results in `lda1`, `lda2`, etc.).
 #' @param savelogs Logical. Save parameter combinations to `"model_logs.csv"`?
 #' @param save_on_every_iteration Logical. If true, every model output is saved seperately after a successful iteration.
 #' @param verbose Logical. If True, prints information while processing.
@@ -73,7 +74,9 @@ decompose_lda = function(document_topic_matrix, lookup_dict, select=1:nrow(docum
 #'
 #' @examples
 #' # multipleLDAs(docs, vocab, K = seq(10, 50, 10), alpha = c(0.1, 1), seed = c(100, 200))
-multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("x", "texts", "dates", "docs", "vocab", "vocabLDA"), savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
+library(rollinglda)
+
+multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("x", "texts", "dates", "docs", "vocab", "vocabLDA"), filename="lda", savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
   
   # onlyonetext = !is.list(unlist(texts))
   # ntextfiles = if(onlyonetext) 1 else seq_along(texts)
@@ -83,7 +86,7 @@ multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("
   lda_vars = list(...)
   core_data = names(lda_vars) %in% data_vars
   grid = expand.grid(lda_vars[!core_data], stringsAsFactors=F)
-
+  
   # take sample
   if(runs != "all"){
     set.seed(seed)
@@ -97,7 +100,7 @@ multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("
     cat("\n")
   }
   
-  model_ids = paste0("run", 1:runs)
+  model_ids = paste0(filename, 1:runs)
   
   if(savelogs){
     savegrid = data.frame(id = model_ids, grid)
@@ -119,15 +122,14 @@ multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("
       res = do.call(func, args = modelargs)
       res$hyperparams = args
       
-      if (save_on_every_iteration) saveRDS(res, paste0(model_ids[idx], "_out.rds"))
+      if (save_on_every_iteration) saveRDS(res, paste0(model_ids[idx], ".rds"))
       res
       
     })
     names(out) = model_ids
-
+    
     return(invisible(out))
-  
+    
   } else return(grid)
   
-
 }
