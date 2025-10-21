@@ -78,8 +78,6 @@ library(rollinglda)
 
 multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("x", "texts", "dates", "docs", "vocab", "vocabLDA"), filename="lda", savelogs=T, save_on_every_iteration=T, verbose=F, calculate=T){
   
-  # onlyonetext = !is.list(unlist(texts))
-  # ntextfiles = if(onlyonetext) 1 else seq_along(texts)
   numerics = c("vocab.abs", "K", "alpha", "eta", "seeds", "n", "vocab.rel", "vocab.fallback", "doc.abs", "memory.fallback")
   
   # init grid
@@ -130,6 +128,5 @@ multipleLDAs = function(..., func="LDAgen", runs="all", seed=1337, data_vars=c("
     
     return(invisible(out))
     
-  } else return(grid)
-  
+  } else return(grid)  
 }
