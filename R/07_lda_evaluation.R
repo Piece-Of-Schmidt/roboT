@@ -155,123 +155,6 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 }
 
 
-#' Export top documents per topic and time period
-#'
-#' Groups documents by time (e.g., month or quarter), then extracts and optionally saves
-#' the most representative texts per topic and time unit.
-#'
-#' @param corpus A `textmeta` object.
-#' @param ldaresult LDA result from `tosca::LDAgen()`.
-#' @param ldaID Document IDs used in the model.
-#' @param unit Time unit (`"month"`, `"bimonth"`, `"quarter"`, `"halfyear"`, `"year"`).
-#' @param nTopTexts Number of top texts per topic and unit.
-#' @param tnames Optional custom topic names.
-#' @param foldername Output folder name. If `NULL`, no export is performed.
-#' @param translate Logical. Translate texts and titles?
-#' @param max_text_length Max. length of exported text.
-#' @param source_lang Source language code.
-#' @param deepl_key DeepL API key.
-#' @param verbose Print progress?
-#' @return Invisibly returns a list of top texts or IDs per topic and time chunk.
-#' @export
-#'
-#' @examples
-#' # lda_getTopTextsPerUnit(corpus, ldaresult, ldaID, unit = "quarter", foldername = "toptexts/")
-lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics)), foldername=NULL,
-                           translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL, verbose=T){
-
-  # safety belt
-  if(missing("corpus") | missing(ldaresult)|!is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
-  if(missing("ldaID")){ldaID = names(corpus$text); warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")}
-  if(!is.null(foldername)) dir.create(foldername)
-  if(translate && is.null(deepl_key)) stop("Insert valid deepl authentification key to use translation")
-
-  # get params
-  K = nrow(ldaresult$topics)
-  doc = ldaresult$document_sums
-
-  # just to be sure: reorder meta so it matches the order of the ldaIDs
-  corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
-
-  # create date chunks
-  floor_dates = lubridate::floor_date(corpus$meta$date, unit)
-  chunks = unique(floor_dates)
-
-  # for every date chunk do the following
-  out = lapply(chunks, function(chunk){
-
-    if(verbose) cat("\rcalculate top texts for chunk", as.character(chunk))
-
-    # find all docs from that period
-    mask = floor_dates == chunk
-
-    # normalize values
-    docs_per_topic = apply(doc[, mask], 2, function(x) x/sum(x))
-
-    # for every topic (row) do the following
-    temp = apply(docs_per_topic, 1, function(topic){
-
-      # reorder theta values (decreasing=T)
-      proms = order(topic, decreasing = T)
-      relevant_docs = seq(min(nTopTexts, length(proms)))
-      proms = proms[relevant_docs]
-      theta_vals = topic[proms]
-
-      # get corresponding text IDs
-      ids = ldaID[mask][proms]
-      ids = ids[!is.na(ids)]
-
-      if(!is.null(foldername)){
-
-        # get text IDs
-        texts = tosca::showTexts(corpus, ids)
-
-        # add theta value
-        texts[, "topic_relevance"] = round(theta_vals[relevant_docs], 2)
-
-        # add resource
-        if("resource" %in% names(corpus$meta)){
-          mask = match(texts[,"id"], corpus$meta$id)
-          texts[,"source"] = corpus$meta$resource[mask]
-          texts = texts[,c(1,2,6,5,3,4)]} else texts = texts[,c(1,2,5,3,4)]
-
-        # shorten (and translate) texts
-        texts$text = substr(texts$text, 0, max_text_length)
-        if(translate){
-          texts$title = deeplr::toGerman2(texts$title, source_lang=source_lang, auth_key=deepl_key)
-          texts$text = deeplr::toGerman2(texts$text, source_lang=source_lang, auth_key=deepl_key)
-        }
-
-        # return
-        texts
-      }else ids
-    })
-
-    # save locally
-    if(!is.null(foldername)){
-      names(temp) = tnames
-      filename = paste0(foldername,"/",chunk,".xlsx")
-      writexl::write_xlsx(temp, filename)
-    }
-    temp
-  })
-
-  # only return ids if no foldername was provided
-  if(is.null(foldername)){
-
-    # rearrange list
-    out = lapply(1:K, function(k){
-      sapply(1:length(chunks), function(t) out[[t]][,k])
-    })
-
-    # add names
-    out = lapply(out, function(x){ colnames(x) = as.character(chunks); x })
-    names(out) = tnames
-  }
-  invisible(out)
-}
-
-
 #' Compute top words per topic and time period
 #'
 #' Aggregates token assignments per time slice and extracts top words for each topic and period.
@@ -373,3 +256,242 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
 }
 
 
+# top texts per quarter ---------------------------------------------------
+
+.safe_name = function(x, maxlen = 80) {
+  x = gsub("[^[:alnum:]_\\-\\.]+", "_", x)
+  x = gsub("_+", "_", x)
+  substr(x, 1, maxlen)
+}
+
+.build_text_table = function(corpus, ids, theta_vals, max_text_length, translate, source_lang, deepl_key) {
+  
+  if (length(ids) == 0) return(data.frame())
+  texts = tosca::showTexts(corpus, ids)
+  
+  # add theta value (topic relevance)
+  texts[,"topic_relevance"] = round(theta_vals[seq_len(nrow(texts))], 2)
+  
+  # add resource column if present
+  if ("resource" %in% names(corpus$meta)) {
+    m = match(texts[,"id"], corpus$meta$id)
+    texts[,"source"] = corpus$meta$resource[m]
+    # reorder: id, date, source, topic_relevance, title, text
+    texts = texts[, c("id","date","source","topic_relevance","title","text")]
+  } else {
+    # reorder: id, date, topic_relevance, title, text
+    texts = texts[, c("id","date","topic_relevance","title","text")]
+  }
+  
+  # shorten (& optionally translate)
+  texts$text = substr(texts$text, 0, max_text_length)
+  if (isTRUE(translate)) {
+    texts$title = deeplr::toGerman2(texts$title, source_lang = source_lang, auth_key = deepl_key)
+    texts$text  = deeplr::toGerman2(texts$text,  source_lang = source_lang, auth_key = deepl_key)
+  }
+  texts
+}
+
+# core workers
+
+toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_dates,
+                                        tnames, nTopTexts, foldername, translate,
+                                        max_text_length, source_lang, deepl_key,
+                                        verbose = TRUE) {
+  
+  out = lapply(chunks, function(chunk) {
+    
+    if (isTRUE(verbose)) cat("\rcalculate top texts for chunk", as.character(chunk))
+    
+    mask = floor_dates == chunk
+    if (!any(mask)) return(matrix(list(), nrow = K, ncol = 1)) # no docs in this chunk
+    
+    # normalize per document (columns)
+    docs_per_topic = apply(doc[, mask, drop = FALSE], 2, function(x) {
+      s = sum(x)
+      if (s == 0) rep(0, length(x)) else x / s
+    })
+    
+    # for each topic (row) pick top docs in that chunk
+    temp = apply(docs_per_topic, 1, function(topic_vec) {
+      
+      proms = order(topic_vec, decreasing = TRUE)
+      if (length(proms) == 0) return(if (is.null(foldername)) character(0) else data.frame())
+      
+      take = seq_len(min(nTopTexts, length(proms)))
+      proms = proms[take]
+      theta_vals = topic_vec[proms]
+      
+      ids = ldaID[mask][proms]
+      ids = ids[!is.na(ids)]
+      
+      if (!is.null(foldername)) {
+        .build_text_table(corpus, ids, theta_vals, max_text_length, translate, source_lang, deepl_key)
+      } else {
+        ids
+      }
+    })
+    
+    # write 1 xlsx per CHUNK (legacy behaviour)
+    if (!is.null(foldername)) {
+      names(temp) = tnames
+      file_chunk = paste0(.safe_name(foldername), "/", .safe_name(as.character(chunk)), ".xlsx")
+      suppressWarnings(dir.create(foldername, showWarnings = FALSE, recursive = TRUE))
+      writexl::write_xlsx(temp, path = file_chunk)
+    }
+    temp
+  })
+  
+  names(out) = as.character(chunks)
+  out
+}
+
+toptextsperunit_groupbytopic = function(corpus, doc, ldaID, K, chunks, floor_dates,
+                                         tnames, nTopTexts, foldername, translate,
+                                         max_text_length, source_lang, deepl_key,
+                                         verbose = TRUE) {
+  
+  if (is.null(foldername))
+    stop("groupby='topic' ist nur sinnvoll mit 'foldername' (wir schreiben 1 Datei pro Topic).")
+  
+  suppressWarnings(dir.create(foldername, showWarnings = FALSE, recursive = TRUE))
+  
+  # Precompute per-chunk normalized matrices so wir normalisieren nur einmal pro Chunk
+  norm_by_chunk = lapply(chunks, function(chunk) {
+    mask = floor_dates == chunk
+    if (!any(mask)) return(NULL)
+    apply(doc[, mask, drop = FALSE], 2, function(x) {
+      s = sum(x); if (s == 0) rep(0, length(x)) else x / s
+    })
+  })
+  names(norm_by_chunk) = as.character(chunks)
+  
+  # iterate topics
+  invisible(lapply(seq_len(K), function(k) {
+    
+    if (isTRUE(verbose)) cat("\rassemble workbook for topic", k, "of", K)
+    
+    # collect one sheet per chunk for this topic
+    sheets = lapply(seq_along(chunks), function(i) {
+      M = norm_by_chunk[[i]]
+      if (is.null(M)) return(data.frame())   # chunk without docs
+      
+      topic_vec = M[k, , drop = TRUE]       # relevance of this topic across docs in chunk
+      proms = order(topic_vec, decreasing = TRUE)
+      if (length(proms) == 0) return(data.frame())
+      
+      take = seq_len(min(nTopTexts, length(proms)))
+      proms = proms[take]
+      theta_vals = topic_vec[proms]
+      
+      mask = floor_dates == chunks[i]
+      ids  = ldaID[mask][proms]
+      ids  = ids[!is.na(ids)]
+      
+      .build_text_table(corpus, ids, theta_vals, max_text_length, translate, source_lang, deepl_key)
+    })
+    
+    names(sheets) = vapply(as.character(chunks), function(x) substr(.safe_name(x, 31), 1, 31), "")
+    # Empty workbooks are still written with empty sheets
+    topic_name = if (length(tnames) >= k) tnames[k] else paste0("Topic_", k)
+    file_topic = file.path(.safe_name(foldername),
+                            paste0(.safe_name(topic_name), ".xlsx"))
+    
+    writexl::write_xlsx(sheets, path = file_topic)
+    NULL
+  }))
+}
+
+#' Export top documents per topic and time period
+#'
+#' Groups documents by time (e.g., month or quarter), then extracts and optionally saves
+#' the most representative texts per topic and time unit.
+#'
+#' @param corpus A `textmeta` object.
+#' @param ldaresult LDA result from `tosca::LDAgen()`.
+#' @param ldaID Document IDs used in the model.
+#' @param unit Time unit (`"month"`, `"bimonth"`, `"quarter"`, `"halfyear"`, `"year"`).
+#' @param nTopTexts Number of top texts per topic and unit.
+#' @param tnames Optional custom topic names (used also for file names with groupby="topic").
+#' @param groupby "date" (default: 1 Datei pro Zeit-Chunk) oder "topic" (neu: 1 Datei pro Topic).
+#' @param foldername Output folder name. If `NULL`, no export is performed.
+#' @param translate Logical. Translate texts and titles?
+#' @param max_text_length Max. length of exported text.
+#' @param source_lang Source language code.
+#' @param deepl_key DeepL API key.
+#' @param verbose Print progress?
+#' @return Invisibly returns a nested list (IDs if no `foldername`; when exporting, returns (invisibly) the in-memory structure).
+#' @export
+lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
+                                   unit = "quarter",
+                                   nTopTexts = 20,
+                                   tnames = NULL,
+                                   groupby = c("date", "topic"),
+                                   foldername = NULL,
+                                   translate = FALSE,
+                                   max_text_length = 32000,
+                                   source_lang = NULL,
+                                   deepl_key = NULL,
+                                   verbose = TRUE) {
+  
+  # safety belt
+  if (missing(corpus) || missing(ldaresult) || !tosca::is.textmeta(corpus))
+    stop("Insert correct arguments for corpus, ldaresult and topic")
+  if (missing(ldaID)) {
+    ldaID = names(corpus$text)
+    warning("Missing ldaID. IDs of the corpus text are used as proxies.\nTrue IDs may differ!\nPlease check the generated top texts.")
+  }
+  if (!is.null(foldername) && !dir.exists(foldername)) dir.create(foldername, recursive = TRUE)
+  if (isTRUE(translate) && is.null(deepl_key))
+    stop("Insert valid deepl authentification key to use translation")
+  
+  groupby = match.arg(groupby)
+  
+  # params from ldaresult
+  K   = nrow(ldaresult$topics)
+  doc = ldaresult$document_sums  # assumed: rows = topics, cols = docs
+  
+  # default topic names
+  if (is.null(tnames)) {
+    twords = tosca::topWords(ldaresult$topics)
+    tnames = paste0("Topic", seq_len(K), ".", twords)
+  }
+  
+  # align meta to ldaID order (very important)
+  corpus$meta = corpus$meta[match(ldaID, corpus$meta$id), ]
+  
+  # date chunks
+  floor_dates = lubridate::floor_date(corpus$meta$date, unit)
+  chunks = unique(floor_dates)
+  
+  # branch
+  if (groupby == "date") {
+    out = toptextsperunit_groupbydate(
+      corpus, doc, ldaID, K, chunks, floor_dates,
+      tnames, nTopTexts, foldername, translate,
+      max_text_length, source_lang, deepl_key,
+      verbose = verbose
+    )
+    
+    # if no export: return IDs rearranged as in original API (topics × chunks)
+    if (is.null(foldername)) {
+      reshaped = lapply(seq_len(K), function(k) {
+        sapply(seq_along(chunks), function(ti) out[[ti]][[k]])
+      })
+      reshaped = lapply(reshaped, function(x) { colnames(x) = as.character(chunks); x })
+      names(reshaped) = tnames
+      return(invisible(reshaped))
+    } else {
+      return(invisible(out))
+    }
+    
+  } else { # groupby == "topic"
+    toptextsperunit_groupbytopic(
+      corpus, doc, ldaID, K, chunks, floor_dates,
+      tnames, nTopTexts, foldername, translate,
+      max_text_length, source_lang, deepl_key,
+      verbose = verbose
+    )
+    return(invisible(NULL))
+  }
+}
