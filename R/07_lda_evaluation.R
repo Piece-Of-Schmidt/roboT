@@ -495,3 +495,92 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
     return(invisible(NULL))
   }
 }
+
+
+# topic cosines ---------------------------------------------------
+
+
+#' get relevant data to print quarter-to-quarter cosine similarities of topics
+#'
+#' @param rollinglda_out RollingLDA output
+#' @return Returs list with relevant data for plotting topic sims.
+#' @export
+get_simdata = function(rollinglda_out){
+  
+  quarters = lubridate::floor_date(getDates(roll), "quarter")
+  xquarter = sort(unique(quarters))
+  nquarter = length(xquarter)
+  
+
+  topicsq = lapply(xquarter, function(x){
+    tmp = table(factor(unlist(getAssignments(getLDA(roll))[quarters == x])+1, levels = 1:getK(getLDA(roll))), 
+                factor(unlist(lapply(getDocs(roll)[quarters == x], function(y) y[1,]))+1,
+                       levels = seq_len(length(getVocab(roll)))))
+    tmp = matrix(as.integer(tmp), nrow = getK(getLDA(roll)))
+    colnames(tmp) = getVocab(roll)
+    tmp
+  })
+  
+  topics = lapply(1:getK(getLDA(roll)), function(k){
+    tmp = sapply(topicsq, function(x) x[k,])
+    colnames(tmp) = paste0("Q", 1:nquarter)
+    tmp
+  })
+  
+  sims = lapply(1:getK(getLDA(roll)), function(k){
+    cosineTopics(topics[[k]], pm.backend = "socket", ncpus = 4)
+  })
+  
+  valq = sapply(sims, function(x) c(NA, x$sims[cbind(2:nquarter,2:nquarter-1)]))
+  valq_first = sapply(sims, function(x) x$sims[,1])
+  valq_last = sapply(sims, function(x) x$sims[nquarter,])
+  
+  # return
+  return(list(xquarter=xquarter, sims=sims, valq=valq, valq_first=valq_first, valq_last=valq_last))
+  
+}
+
+
+#' Print quarter-to-quarter cosine similarities of topics
+#'
+#' @param simdata Result of get_simdata() function.
+#' @param row Number of rows pro plot grid.
+#' @param col Number of columns pro plot grid.
+#' @param labels Topic names.
+#' @param title Plot title.
+#' @param xlab xlab of plot.
+#' @param ylab ylab of plot.
+#' @param filename Name of file. If `NULL`, no export is performed.
+#' @param width Width of plot.
+#' @param height Height of plot.
+#' @return Invisibly returns plot file.
+#' @export
+print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab="", filename=NULL, width=8, height=10){
+  
+  xquarter = simdata$xquarter
+  valq = simdata$valq
+  valq_first = simdata$valq_first
+  valq_last = simdata$valq_last
+  topics = 1:length(simdata[["sims"]])
+  
+  if(is.null(labels)) labels = paste0("Topic",topics)
+  xmin = min(xquarter)
+  cosine_quarterly = ggmatrix(lapply(topics, function(i){
+    ggplot() + geom_line(aes(x = xquarter, y = valq[,i]), col = "darkgrey") + ylim(c(0,1)) +
+      geom_line(aes(x = xquarter, y = valq_first[,i], col = "green")) +
+      geom_line(aes(x = xquarter, y = valq_last[,i], col = "red")) +
+      geom_line(aes(x = xquarter, y = valq[,i])) +
+      annotate("text", x = xmin, y = 0.05, label = labels[i], hjust = 0, vjust = 0)
+  }), nrow = nrow, ncol = ncol, ylab = ylab, xlab = xlab, title = title)
+  
+  # print
+  if(!is.null(filename)){
+    pdf(paste0(sub("([.]\\w{3})$","",filename), ".pdf"), width = width, height = height)
+    print(cosine_quarterly)
+    dev.off()
+  }
+  
+  # return
+  print(cosine_quarterly)
+  invisible(cosine_quarterly)
+}
