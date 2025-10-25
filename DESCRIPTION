@@ -17,7 +17,8 @@ Imports:
     reshape2,
     tosca,
     utf8,
-    writexl
+    writexl,
+    GGally
 Depends: 
     R (>= 3.5)
 LazyData: true
