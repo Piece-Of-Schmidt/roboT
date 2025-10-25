@@ -171,13 +171,14 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #' @param max_text_length Max. length of exported text.
 #' @param source_lang Source language code.
 #' @param deepl_key DeepL API key.
+#' @param verbose Print progress?
 #' @return Invisibly returns a list of top texts or IDs per topic and time chunk.
 #' @export
 #'
 #' @examples
 #' # topTextsPerUnit(corpus, ldaresult, ldaID, unit = "quarter", foldername = "toptexts/")
-topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics)), foldername=NULL,
-                           translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
+lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics)), foldername=NULL,
+                           translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL, verbose=T){
 
   # safety belt
   if(missing("corpus") | missing(ldaresult)|!is.textmeta(corpus)) stop("Insert correct arguments for corpus, ldaresult and topic")
@@ -198,6 +199,8 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 
   # for every date chunk do the following
   out = lapply(chunks, function(chunk){
+
+    if(verbose) cat("\rcalculate top texts for chunk", as.character(chunk))
 
     # find all docs from that period
     mask = floor_dates == chunk
@@ -290,7 +293,7 @@ topTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=2
 #'
 #' @examples
 #' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-topWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=F, file=NULL, verbose=T){
+lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=F, file=NULL, verbose=T){
   
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
