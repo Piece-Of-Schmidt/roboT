@@ -176,7 +176,7 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #' @export
 #'
 #' @examples
-#' # topTextsPerUnit(corpus, ldaresult, ldaID, unit = "quarter", foldername = "toptexts/")
+#' # lda_getTopTextsPerUnit(corpus, ldaresult, ldaID, unit = "quarter", foldername = "toptexts/")
 lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTopTexts=20, tnames=paste0("Topic", 1:K, ".", tosca::topWords(ldaresult$topics)), foldername=NULL,
                            translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL, verbose=T){
 
@@ -292,7 +292,7 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID, unit="quarter", nTop
 #' @export
 #'
 #' @examples
-#' # topWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
+#' # lda_getTopWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
 lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=F, file=NULL, verbose=T){
   
   # safety belt
@@ -327,7 +327,7 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
     tmp
   })
   
-  topwordsq = lapply(topicsq, topWords, numWords = numWords, values = T)
+  topwordsq = lapply(topicsq, tosca::topWords, numWords = numWords, values = T)
   names(topwordsq)=chunks
   
   out = lapply(1:K, function(k) sapply(seq(topwordsq), function(t) topwordsq[[t]][[1]][,k]))
@@ -371,4 +371,5 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
   
   invisible(out)
 }
+
 
