@@ -209,6 +209,7 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
     colnames(tmp) = vocab
     tmp
   })
+  if(verbose) cat("\n")
   
   topwordsq = lapply(topicsq, tosca::topWords, numWords = numWords, values = T)
   names(topwordsq)=chunks
@@ -301,7 +302,7 @@ toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_date
   
   out = lapply(chunks, function(chunk) {
     
-    if (isTRUE(verbose)) cat("\rcalculate top texts for chunk", as.character(chunk))
+    if (verbose) cat("\rcalculate top texts for chunk", as.character(chunk))
     
     mask = floor_dates == chunk
     if (!any(mask)) return(matrix(list(), nrow = K, ncol = 1)) # no docs in this chunk
@@ -331,6 +332,7 @@ toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_date
         ids
       }
     })
+    if(verbose) cat("\n")
     
     # write 1 xlsx per CHUNK (legacy behaviour)
     if (!is.null(foldername)) {
@@ -583,4 +585,5 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
   # return
   print(cosine_quarterly)
   invisible(cosine_quarterly)
+
 }
