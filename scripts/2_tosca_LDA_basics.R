@@ -111,12 +111,12 @@ write.csv2(plot, "plot.csv")
 # Top Texts per unit (hier: quarter) - pro Quartal die relevantesten Texte pro Topic
 K_value = 8
 result = get(paste0("result_K", K_value))
-topTextsPerUnit(corpus = corp, ldaresult = result, ldaID = names(docs), unit = "quarter", foldername = paste0("K", K_value, "/TopTextsPerUnit"))
+lda_getTopTextsPerUnit(corpus = corp, ldaresult = result, ldaID = names(docs), unit = "quarter", groupby="topic", foldername = paste0("K", K_value, "/TopTextsPerUnit"))
 
 # Top Words per unit (hier: quarter) - pro Quartal die relevantesten Worte pro Topic
 K_value = 8
 result = get(paste0("result_K", K_value))
-topWordsPerUnit(corpus = corp, ldaresult = result, docs = docs, unit = "quarter", file = paste0("K", K_value, "/TopWordsPerUnit"))
+lda_getTopWordsPerUnit(corpus = corp, ldaresult = result, docs = docs, unit = "quarter", groupby="topic", file = paste0("K", K_value, "/TopWordsPerUnit"))
 
 
 
@@ -143,4 +143,5 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
