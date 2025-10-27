@@ -295,20 +295,32 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
 
 # core workers
 
-toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_dates,
-                                        tnames, nTopTexts, foldername, translate,
-                                        max_text_length, source_lang, deepl_key,
-                                        verbose = TRUE) {
+toptextsperunit_groupbydate = function(corpus, doc, ldaID, select_topics, chunks, floor_dates,
+                                       tnames, nTopTexts, foldername, translate,
+                                       max_text_length, source_lang, deepl_key,
+                                       verbose = TRUE) {
   
   out = lapply(chunks, function(chunk) {
     
     if (verbose) cat("\rcalculate top texts for chunk", as.character(chunk))
     
     mask = floor_dates == chunk
-    if (!any(mask)) return(matrix(list(), nrow = K, ncol = 1)) # no docs in this chunk
+    if (!any(mask)) {
+      # for each Topic: return empty element
+      empty_el = if (is.null(foldername)) character(0) else data.frame()
+      temp = rep(list(empty_el), length(select_topics))
+      if (!is.null(foldername)) {
+        names(temp) = tnames
+        file_chunk = paste0(.safe_name(foldername), "/", .safe_name(as.character(chunk)), ".xlsx")
+        suppressWarnings(dir.create(foldername, showWarnings = FALSE, recursive = TRUE))
+        writexl::write_xlsx(temp, path = file_chunk)
+      }
+      if (verbose) cat("\n")
+      return(temp)
+    }
     
     # normalize per document (columns)
-    docs_per_topic = apply(doc[, mask, drop = FALSE], 2, function(x) {
+    docs_per_topic = apply(doc[select_topics, mask, drop = FALSE], 2, function(x) {
       s = sum(x)
       if (s == 0) rep(0, length(x)) else x / s
     })
@@ -334,7 +346,7 @@ toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_date
     })
     if(verbose) cat("\n")
     
-    # write 1 xlsx per CHUNK (legacy behaviour)
+    # write 1 xlsx per CHUNK
     if (!is.null(foldername)) {
       names(temp) = tnames
       file_chunk = paste0(.safe_name(foldername), "/", .safe_name(as.character(chunk)), ".xlsx")
@@ -348,10 +360,10 @@ toptextsperunit_groupbydate = function(corpus, doc, ldaID, K, chunks, floor_date
   out
 }
 
-toptextsperunit_groupbytopic = function(corpus, doc, ldaID, K, chunks, floor_dates,
-                                         tnames, nTopTexts, foldername, translate,
-                                         max_text_length, source_lang, deepl_key,
-                                         verbose = TRUE) {
+toptextsperunit_groupbytopic = function(corpus, doc, ldaID, select_topics, chunks, floor_dates,
+                                        tnames, nTopTexts, foldername, translate,
+                                        max_text_length, source_lang, deepl_key,
+                                        verbose = TRUE) {
   
   if (is.null(foldername))
     stop("groupby='topic' ist nur sinnvoll mit 'foldername' (wir schreiben 1 Datei pro Topic).")
@@ -362,23 +374,23 @@ toptextsperunit_groupbytopic = function(corpus, doc, ldaID, K, chunks, floor_dat
   norm_by_chunk = lapply(chunks, function(chunk) {
     mask = floor_dates == chunk
     if (!any(mask)) return(NULL)
-    apply(doc[, mask, drop = FALSE], 2, function(x) {
+    apply(doc[select_topics, mask, drop = FALSE], 2, function(x){
       s = sum(x); if (s == 0) rep(0, length(x)) else x / s
     })
   })
   names(norm_by_chunk) = as.character(chunks)
   
   # iterate topics
-  invisible(lapply(seq_len(K), function(k) {
+  invisible(lapply(select_topics, function(k) {
     
-    if (isTRUE(verbose)) cat("\rassemble workbook for topic", k, "of", K)
+    if (isTRUE(verbose)) cat("\rassemble workbook for topic", k, "of", length(select_topics))
     
     # collect one sheet per chunk for this topic
     sheets = lapply(seq_along(chunks), function(i) {
       M = norm_by_chunk[[i]]
       if (is.null(M)) return(data.frame())   # chunk without docs
       
-      topic_vec = M[k, , drop = TRUE]       # relevance of this topic across docs in chunk
+      topic_vec = M[which(select_topics == k), , drop = TRUE]       # relevance of this topic across docs in chunk
       proms = order(topic_vec, decreasing = TRUE)
       if (length(proms) == 0) return(data.frame())
       
@@ -397,7 +409,7 @@ toptextsperunit_groupbytopic = function(corpus, doc, ldaID, K, chunks, floor_dat
     # Empty workbooks are still written with empty sheets
     topic_name = if (length(tnames) >= k) tnames[k] else paste0("Topic_", k)
     file_topic = file.path(.safe_name(foldername),
-                            paste0(.safe_name(topic_name), ".xlsx"))
+                           paste0(.safe_name(topic_name), ".xlsx"))
     
     writexl::write_xlsx(sheets, path = file_topic)
     NULL
@@ -425,16 +437,18 @@ toptextsperunit_groupbytopic = function(corpus, doc, ldaID, K, chunks, floor_dat
 #' @return Invisibly returns a nested list (IDs if no `foldername`; when exporting, returns (invisibly) the in-memory structure).
 #' @export
 lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
-                                   unit = "quarter",
-                                   nTopTexts = 20,
-                                   tnames = NULL,
-                                   groupby = c("date", "topic"),
-                                   foldername = NULL,
-                                   translate = FALSE,
-                                   max_text_length = 32000,
-                                   source_lang = NULL,
-                                   deepl_key = NULL,
-                                   verbose = TRUE) {
+                                  unit = "quarter",
+                                  nTopTexts = 20,
+                                  tnames = NULL,
+                                  groupby = c("date", "topic"),
+                                  select_topics = 1:nrow(ldaresult$topics),
+                                  select_dates = NULL,
+                                  foldername = NULL,
+                                  translate = FALSE,
+                                  max_text_length = 32000,
+                                  source_lang = NULL,
+                                  deepl_key = NULL,
+                                  verbose = TRUE) {
   
   # safety belt
   if (missing(corpus) || missing(ldaresult) || !tosca::is.textmeta(corpus))
@@ -450,13 +464,16 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
   groupby = match.arg(groupby)
   
   # params from ldaresult
-  K   = nrow(ldaresult$topics)
   doc = ldaresult$document_sums  # assumed: rows = topics, cols = docs
   
   # default topic names
   if (is.null(tnames)) {
     twords = tosca::topWords(ldaresult$topics)
-    tnames = paste0("Topic", seq_len(K), ".", twords)
+    tnames = paste0("Topic", select_topics, ".", twords[select_topics])
+  } else if (length(tnames) == K_total) {
+    tnames = tnames[select_topics]
+  } else if (length(tnames) != length(select_topics)) {
+    stop("Length of tnames must be either K (all topics) or length(select_topics).")
   }
   
   # align meta to ldaID order (very important)
@@ -464,12 +481,12 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
   
   # date chunks
   floor_dates = lubridate::floor_date(corpus$meta$date, unit)
-  chunks = unique(floor_dates)
+  chunks = if(!is.null(select_dates)) unique(lubridate::floor_date(select_dates, unit)) else unique(floor_dates)
   
   # branch
   if (groupby == "date") {
     out = toptextsperunit_groupbydate(
-      corpus, doc, ldaID, K, chunks, floor_dates,
+      corpus, doc, ldaID, select_topics, chunks, floor_dates,
       tnames, nTopTexts, foldername, translate,
       max_text_length, source_lang, deepl_key,
       verbose = verbose
@@ -477,6 +494,7 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
     
     # if no export: return IDs rearranged as in original API (topics × chunks)
     if (is.null(foldername)) {
+      K = length(select_topics)
       reshaped = lapply(seq_len(K), function(k) {
         sapply(seq_along(chunks), function(ti) out[[ti]][[k]])
       })
@@ -489,7 +507,7 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
     
   } else { # groupby == "topic"
     toptextsperunit_groupbytopic(
-      corpus, doc, ldaID, K, chunks, floor_dates,
+      corpus, doc, ldaID, select_topics, chunks, floor_dates,
       tnames, nTopTexts, foldername, translate,
       max_text_length, source_lang, deepl_key,
       verbose = verbose
