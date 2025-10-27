@@ -123,5 +123,5 @@ multipleLDAs = function(..., func="LDAgen", data_vars=c("x", "texts", "dates", "
     return(invisible(out))
     
   } else return(grid)  
-}
 
+}
