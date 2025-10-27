@@ -499,8 +499,8 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
 }
 
 
-# topic cosines ---------------------------------------------------
 
+# topic cosines ---------------------------------------------------
 
 #' get relevant data to print quarter-to-quarter cosine similarities of topics
 #'
@@ -509,27 +509,36 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
 #' @export
 get_simdata = function(rollinglda_out){
   
-  quarters = lubridate::floor_date(getDates(roll), "quarter")
+  # get RollingLDA data
+  nks = getK(getLDA(rollinglda_out))
+  assignments = getAssignments(getLDA(rollinglda_out))
+  docs = getDocs(rollinglda_out)
+  vocab = getVocab(rollinglda_out)
+  dates = getDates(rollinglda_out)
+
+  # extract quarters
+  quarters = lubridate::floor_date(dates, "quarter")
   xquarter = sort(unique(quarters))
   nquarter = length(xquarter)
-  
 
+  # get topic assignments per quarter
   topicsq = lapply(xquarter, function(x){
-    tmp = table(factor(unlist(getAssignments(getLDA(roll))[quarters == x])+1, levels = 1:getK(getLDA(roll))), 
-                factor(unlist(lapply(getDocs(roll)[quarters == x], function(y) y[1,]))+1,
-                       levels = seq_len(length(getVocab(roll)))))
-    tmp = matrix(as.integer(tmp), nrow = getK(getLDA(roll)))
-    colnames(tmp) = getVocab(roll)
+    tmp = table(factor(unlist(assignments[quarters == x])+1, levels = 1:nks), 
+                factor(unlist(lapply(docs[quarters == x], function(y) y[1,]))+1,
+                       levels = seq_len(length(vocab))))
+    tmp = matrix(as.integer(tmp), nrow = nks)
+    colnames(tmp) = vocab
     tmp
   })
   
-  topics = lapply(1:getK(getLDA(roll)), function(k){
+  topics = lapply(1:nks, function(k){
     tmp = sapply(topicsq, function(x) x[k,])
     colnames(tmp) = paste0("Q", 1:nquarter)
     tmp
   })
   
-  sims = lapply(1:getK(getLDA(roll)), function(k){
+  # calculate simils
+  sims = lapply(1:nks, function(k){
     cosineTopics(topics[[k]], pm.backend = "socket", ncpus = 4)
   })
   
