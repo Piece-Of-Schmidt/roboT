@@ -504,10 +504,20 @@ lda_getTopTextsPerUnit = function(corpus, ldaresult, ldaID,
 
 #' get relevant data to print quarter-to-quarter cosine similarities of topics
 #'
-#' @param rollinglda_out RollingLDA output
-#' @return Returs list with relevant data for plotting topic sims.
+#' @param rollinglda_out RollingLDA output object containing topic assignments, vocabulary, and document dates.
+#' @param pm.backend Parallelization backend to be used for cosine similarity calculation (e.g., `"socket"` or `"multicore"`).
+#' @param ncpus Number of CPU cores to use for parallel computation.
+#'
+#' @return Returns a list with relevant data for plotting topic similarities, including:
+#' \itemize{
+#'   \item \code{xquarter}: vector of quarter timestamps,
+#'   \item \code{sims}: list of cosine similarity matrices per topic,
+#'   \item \code{valq}: matrix of adjacent-quarter similarities,
+#'   \item \code{valq_first}: similarity values of each quarter to the first quarter,
+#'   \item \code{valq_last}: similarity values of each quarter to the last quarter.
+#' }
 #' @export
-get_simdata = function(rollinglda_out){
+get_simdata = function(rollinglda_out, pm.backend = "socket", ncpus = 1){
   
   # get RollingLDA data
   nks = getK(getLDA(rollinglda_out))
@@ -515,12 +525,12 @@ get_simdata = function(rollinglda_out){
   docs = getDocs(rollinglda_out)
   vocab = getVocab(rollinglda_out)
   dates = getDates(rollinglda_out)
-
+  
   # extract quarters
   quarters = lubridate::floor_date(dates, "quarter")
   xquarter = sort(unique(quarters))
   nquarter = length(xquarter)
-
+  
   # get topic assignments per quarter
   topicsq = lapply(xquarter, function(x){
     tmp = table(factor(unlist(assignments[quarters == x])+1, levels = 1:nks), 
@@ -539,7 +549,7 @@ get_simdata = function(rollinglda_out){
   
   # calculate simils
   sims = lapply(1:nks, function(k){
-    cosineTopics(topics[[k]], pm.backend = "socket", ncpus = 4)
+    ldaPrototype::cosineTopics(topics[[k]], pm.backend = pm.backend, ncpus = ncpus)
   })
   
   valq = sapply(sims, function(x) c(NA, x$sims[cbind(2:nquarter,2:nquarter-1)]))
