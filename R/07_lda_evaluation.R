@@ -73,8 +73,10 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
   # convert to textmeta object, even if object is just a list of texts
   if(!corp) corpus = vec.as.textmeta(corpus)
 
-  # generate data frame of topTexts
-  tt = tosca::topTexts(ldaresult, ldaID, nTopTexts)
+  # generate data frame of topTexts. Since NA cases can occure: identify 10x top texts and only return top nTopTexts docs
+  effect_nTopTexts = min(nTopTexts*10, ncol(ldaresult$document_sums))
+  tt = tosca::topTexts(ldaresult, ldaID, effect_nTopTexts)
+  tt = apply(tt, 2, \(col) na.omit(col)[1:nTopTexts])
   tt = tosca::showTexts(corpus, tt)
 
   # shorten (and translate) texts
