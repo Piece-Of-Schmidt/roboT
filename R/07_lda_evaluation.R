@@ -59,7 +59,7 @@ get_tw_and_titles = function(corpus, ldaresult, ldaID, n = 20, select = NULL){
 #'
 #' @examples
 #' # lda_getTopTexts(corpus, ldaresult, ldaID, nTopTexts = 20)
-lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts",
+lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topTexts", select_ids=NULL,
                            translate=F, max_text_length=32000, source_lang=NULL, deepl_key=NULL){
 
   # safety belt
@@ -72,6 +72,9 @@ lda_getTopTexts = function(corpus, ldaresult, ldaID, nTopTexts=50, file="topText
 
   # convert to textmeta object, even if object is just a list of texts
   if(!corp) corpus = vec.as.textmeta(corpus)
+
+  # select relevant documents
+  if(!is.null(select_ids)) ldaresult$document_sums = ldaresult$document_sums[, match(select_ids, ldaID)]
 
   # generate data frame of topTexts. Since NA cases can occure: identify 10x top texts and only return top nTopTexts docs
   effect_nTopTexts = min(nTopTexts*10, ncol(ldaresult$document_sums))
