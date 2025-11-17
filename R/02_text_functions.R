@@ -107,62 +107,70 @@ get_context = function(texts, pattern, windowsize=30, seperator=NULL, ignore.cas
 #' df <- data.frame(a = c("short", "a very long piece of text"), b = 1:2)
 #' print_dataframe(df)
 print_dataframe = function(df,
-                           col_prop  = NULL,   # Vektor von Anteilen (0‒1)
-                           buffer    = 2,      # Sicherheits-Abzug je Spalte
-                           sep       = " | ",  # Spaltentrenner
-                           line_char = "-",    # Zeichen für die Trennlinie
+                           col_prop  = NULL,
+                           buffer    = 2,
+                           sep       = " | ",
+                           line_char = "-",
                            del_special_chars = "\r") {
   stopifnot(is.data.frame(df))
   nc = ncol(df)
   if (nc < 2) df = data.frame(df, "")
-
+  
   col_prop = c(col_prop, rep(NA_real_, nc))[1:nc]
-
+  
   if (any(col_prop < 0 | col_prop > 1, na.rm = TRUE))
     stop("Anteile muessen zwischen 0 und 1 liegen.")
-
+  
   fixed_sum   = sum(col_prop, na.rm = TRUE)
   num_missing = sum(is.na(col_prop))
-
+  
   if (fixed_sum > 1 + .Machine$double.eps^0.5)
     stop("Vorgegebene Anteile summieren sich auf > 1.")
-
+  
   if (num_missing > 0) {
     col_prop[is.na(col_prop)] = (1 - fixed_sum) / num_missing
   } else if (abs(fixed_sum - 1) > .Machine$double.eps^0.5) {
     stop("Anteile muessen sich auf 1 (= 100 %) addieren.")
   }
-
-  # --- Spaltenbreiten berechnen ---------------------------------------------
+  
+  # --- Spaltenbreiten --------------------------------------------------------
   total_width = getOption("width")
-  avail_width = total_width - (nc - 1) * nchar(sep)   # Platz ohne Trenner
+  avail_width = total_width - (nc - 1) * nchar(sep)
   col_width   = pmax(floor(avail_width * col_prop) - buffer, 5)
-
-  # ggf. Rundungsfehler korrigieren (Restpixel dem letzten Puffer zuschlagen)
+  
   diff = avail_width - sum(col_width)
   if (diff > 0) col_width[nc] = col_width[nc] + diff
-
+  
   if (any(col_width < 5))
     stop("zu viele Spalten / zu kleine Konsole")
-
-  # replace characters
-  if(!is.null(del_special_chars)){
-    df = apply(df, 2, gsub, pattern=del_special_chars, replacement="", fixed=T)
+  
+  # evtl. Sonderzeichen entfernen
+  if (!is.null(del_special_chars)) {
+    df = as.data.frame(lapply(df, function(x)
+      gsub(del_special_chars, "", x, fixed = TRUE)),
+      stringsAsFactors = FALSE)
   }
-
+  
   # --- Hilfsfunktionen -------------------------------------------------------
   wrap_preserve = function(txt, width) {
     paragraphs = strsplit(as.character(txt), "\n", fixed = TRUE)[[1]]
-    unlist(lapply(paragraphs, function(p)
-      if (p == "") "" else strwrap(p, width = width)),
-      use.names = FALSE)
+    res = unlist(lapply(paragraphs, function(p) {
+      if (p == "") return("")
+      # explizit lange Wörter brechen
+      out = strwrap(p, width = width)
+      # Sicherheitskürzung, falls doch mal was überläuft
+      substr(out, 1, width)
+    }), use.names = FALSE)
+    if (length(res) == 0) "" else res
   }
-  line_char2 = ifelse(is.null(line_char), "-", line_char)
-  divider = paste(rep(substr(line_char2, 1, 1), total_width), collapse = "")
-
-  # add colnames
+  
+  line_char2  = ifelse(is.null(line_char), "-", line_char)
+  divider_len = sum(col_width) + (nc - 1) * nchar(sep)
+  divider     = paste(rep(substr(line_char2, 1, 1), divider_len), collapse = "")
+  
+  # Überschriftenzeile einfügen
   df = rbind(setNames(toupper(colnames(df)), colnames(df)), df)
-
+  
   # --- Ausgabe ---------------------------------------------------------------
   for (row in seq_len(nrow(df))) {
     col_lines = mapply(function(x, w) wrap_preserve(x, w),
@@ -171,14 +179,18 @@ print_dataframe = function(df,
     max_lines = max(lengths(col_lines))
     col_lines = lapply(col_lines, function(x)
       c(x, rep("", max_lines - length(x))))
-
+    
     for (i in seq_len(max_lines)) {
-      pieces = vapply(seq_along(col_lines),
-                      function(j) sprintf("%-*s", col_width[j], col_lines[[j]][i]),
-                      character(1))
+      pieces = vapply(seq_along(col_lines), function(j) {
+        txt <- col_lines[[j]][i]
+        w   <- col_width[j]
+        # noch einmal hart auf Spaltenbreite begrenzen
+        txt <- substr(txt, 1, w)
+        format(txt, width = w, justify = "left")
+      }, character(1))
       cat(paste(pieces, collapse = sep), "\n", sep = "")
     }
-    if(!is.null(line_char) | row == 1) cat(divider, "\n") # print after headlines
+    if (!is.null(line_char) | row == 1) cat(divider, "\n")
   }
 }
 
