@@ -88,7 +88,7 @@ filterWordCounts = function(corpus, lower_thresh=0, upper_thresh=1){
 filterDups_titles = function(corpus, unit = "day", ignore.case=F, out=c("obj", "text", "ids", "logical"), message=T, verbose=F) {
   
   # Sicherstellen, dass das Eingabeformat korrekt ist
-  if (!unit %in% c("all", "days", "months", "years")) stop('unit must be one of c("all", "days", "months", "years")')
+  if (!unit %in% c("all", "day", "days", "week", "weeks", "month", "months", "year", "years")) stop('unit must be one of c("all", "day", "days", "week", "weeks", "month", "months", "year", "years")')
   
   out = match.arg(out)
   before = nrow(corpus$meta)
@@ -129,8 +129,8 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, out=c("obj", "
   }
   
   # return
-  if(out=="obj" && is.textmeta(obj)){
-    return(tosca::filterID(obj, id = unique_ids, filtermeta = TRUE))
+  if(out=="obj" && is.textmeta(corpus)){
+    return(tosca::filterID(corpus, id = unique_ids, filtermeta = TRUE))
   }else if (out == "logical"){
     return(!dups)
   }else if (out == "ids"){
