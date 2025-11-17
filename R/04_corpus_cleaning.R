@@ -122,8 +122,9 @@ filterDups_titles = function(corpus, unit = "day", ignore.case=F, out=c("obj", "
                 sum(!dups), before, before - sum(!dups), 100 * (before - sum(!dups)) / before))
   }
   if(verbose){
-    cat("Show 10 most prominent titles (which have been removed)\n")
-    titlesdf = data.frame(sort(table(corpus$meta$title[dups]), decreasing=T)[1:10])
+    limit = min(10, sum(dups))
+    cat("Show", limit, "most prominent titles (which have been removed)\n")
+    titlesdf = data.frame(sort(table(corpus$meta$title[dups]), decreasing=T)[1:limit])
     print_dataframe(titlesdf, col_prop = c(0.98, 0.02), line_char = NULL)
     cat("\n")
   }
@@ -201,9 +202,9 @@ filterDups_leads = function(obj, checkFirstChars = 120, unit = "day", ignore.cas
     
   }
   if(verbose){
-    cat("Show 10 most prominent leads (which have identified documents as duplicates)\n")
-    # print(cbind(sort(table(paste0(df$leads[df$ids %in% setdiff(df$ids, ids)], "...")), decreasing=T)[1:10]))
-    leadsdf = data.frame(sort(table(paste0(leads[!ids %in% unique_ids], "...")), decreasing=T)[1:10])
+    limit = min(10, sum(!mask))
+    cat("Show", limit, "most prominent leads (which have identified documents as duplicates)\n")
+    leadsdf = data.frame(sort(table(paste0(leads[!ids %in% unique_ids], "...")), decreasing=T)[1:limit])
     print_dataframe(leadsdf, col_prop = c(0.98, 0.02), line_char = NULL)
     cat("\n")
   }
