@@ -63,7 +63,9 @@ K_WERTE = c(8, 10) # <- probieren Sie hier verschiedene K-Werte aus, z.B. K_WERT
 seed = 123 # arbitrary choice
 
 # select sample dates for top texts per quarter <- an Korpus-Größe (min-Date, max-Date) anpassen
-rel_dates = as.Date(c("2001-04-01", "2005-06-01", "2010-07-01", "2013-10-01", "2016-05-01", "2019-06-01", "2022-08-01", "2025-01-01")) # arbitrary selection
+if (FALSE){ # set to TRUE and select relevant dates, if you wish to generate top texts per month/quarter/year only for selected dates
+  rel_dates = as.Date(c("2001-04-01", "2005-06-01", "2010-07-01", "2013-10-01", "2016-05-01", "2019-06-01", "2022-08-01", "2025-01-01")) # arbitrary selection
+} else rel_dates = NULL
 
 # loop through all k values
 for(k in K_WERTE){
