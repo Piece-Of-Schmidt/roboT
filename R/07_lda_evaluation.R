@@ -181,7 +181,7 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #'
 #' @examples
 #' # lda_getTopWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=50, tnames=NULL, values=F, file=NULL, verbose=T){
+lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=1, tnames=NULL, values=F, file=NULL, verbose=T){
   
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
@@ -629,3 +629,4 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
   invisible(cosine_quarterly)
 
 }
+
