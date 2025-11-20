@@ -89,10 +89,10 @@ for(k in K_WERTE){
   lda_getTopTexts(corp, result, ldaID = names(docs), file = sprintf("K%d/TopTexts_K%d_seed%d", k, k, seed))
 
   # extract top words per quarter 
-  lda_getTopWordsPerUnit(corpus = corp, ldaresult = result, docs = docs, unit = "quarter", file = sprintf("K%d/TopWordsPerQuarter_k%s_seed%s", k, k, seed))
+  lda_getTopWordsPerUnit(corpus = corp, ldaresult = result, docs = docs, unit = "year", file = sprintf("K%d/TopWordsPerQuarter_k%s_seed%s", k, k, seed))
 
   # extract top texts per quarter -> most relevant docs per quarter per topic
-  lda_getTopTextsPerUnit(corpus = corp, ldaresult = result, ldaID = names(docs), unit = "quarter", groupby = "topic", select_dates = rel_dates, foldername = sprintf("K%d/TopTextsPerQuarter", k, k, seed))
+  lda_getTopTextsPerUnit(corpus = corp, ldaresult = result, ldaID = names(docs), unit = "year", groupby = "topic", select_dates = rel_dates, foldername = sprintf("K%d/TopTextsPerQuarter", k))
 
   # plot topics
   plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = FALSE, curves = "both", smooth = 0.1, unit = "quarter", legend = "topleft", pages = TRUE, file = sprintf("K%d/topics_over_time_K%d_seed%d.pdf", k, k, seed))
@@ -142,6 +142,7 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
 
 
