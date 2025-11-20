@@ -265,7 +265,7 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
 # top texts per quarter ---------------------------------------------------
 
 .safe_name = function(x, maxlen = 80) {
-  x = gsub("[^[:alnum:]_\\-\\.]+", "_", x)
+  x = gsub("[^[:alnum:]/_\\-\\.]+", "_", x)
   x = gsub("_+", "_", x)
   substr(x, 1, maxlen)
 }
@@ -629,4 +629,5 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
   invisible(cosine_quarterly)
 
 }
+
 
