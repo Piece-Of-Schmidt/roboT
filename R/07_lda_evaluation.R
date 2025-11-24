@@ -631,3 +631,218 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
 }
 
 
+# decompose LDA result ---------------------------------------------------
+
+
+#' Build a lookup table for LDA decomposition
+#'
+#' Creates a standardized lookup table linking document IDs to groups
+#' (e.g., labels, clusters, categories) and optionally dates.  
+#' The lookup table is required by `decompose_lda()` to aggregate topic
+#' contributions by metadata.
+#'
+#' You can either pass a data frame containing the relevant columns
+#' (`id`, `group`, and optionally `date`), or you can supply vectors
+#' (`ids`, `groups`, `dates`) directly.
+#'
+#' @param ids Character or numeric vector of document IDs.  
+#'   Required if `frame` is not provided.
+#' @param groups Vector specifying group membership for each document  
+#'   (e.g., class labels, newspapers, time periods).
+#' @param dates Optional vector of dates for each document  
+#'   (used to aggregate topics over time).
+#' @param frame Optional data frame containing columns `id`, `group`,
+#'   and optionally `date`. If provided, it overrides `ids`, `groups`,
+#'   and `dates`.
+#'
+#' @return A data frame with columns:
+#'   \describe{
+#'     \item{id}{Document ID}
+#'     \item{group}{Group label}
+#'     \item{date}{Optional document date}
+#'   }
+#'
+#' @examples
+#' # Using separate vectors
+#' lookup <- build_lookup(
+#'   ids = c("d1", "d2", "d3"),
+#'   groups = c("A", "B", "A"),
+#'   dates = as.Date(c("2020-01-01", "2020-01-02", "2020-01-03"))
+#' )
+#'
+#' # Using an existing data frame
+#' df <- data.frame(
+#'   id = 1:3,
+#'   group = c("x", "y", "x"),
+#'   date = Sys.Date() + 0:2
+#' )
+#' lookup2 <- build_lookup(frame = df)
+#'
+#' @export
+build_lookup = function(ids = NULL,
+                        groups = NULL,
+                        dates = NULL,
+                        frame = NULL) {
+  
+  # Fall 1: data.frame wird übergeben
+  if (!is.null(frame)) {
+    rel_columns = intersect(colnames(frame), c("id", "group", "date"))
+    if (!all(c("id", "group") %in% rel_columns)) {
+      stop("If 'frame' is used, it must contain at least 'id' and 'group' columns.")
+    }
+    out = frame[, rel_columns]
+    
+  } else {
+    # Fall 2: ids / groups (und evtl. dates) werden direkt übergeben
+    if (is.null(ids) || is.null(groups)) {
+      stop("Either 'frame' or both 'ids' and 'groups' must be supplied.")
+    }
+    if (!is.null(dates) &&
+        !all(length(ids) == length(groups), length(ids) == length(dates))) {
+      stop("'ids', 'groups' and 'dates' (if given) must have the same length.")
+    }
+    out = data.frame(
+      id    = ids,
+      group = groups,
+      date  = if (!is.null(dates)) dates else NA
+    )
+  }
+  
+  return(out)
+}
+
+
+#' Decompose an LDA topic-document matrix by groups and dates
+#'
+#' Takes a document-topic matrix (rows = topics, columns = documents),
+#' merges it with document metadata (e.g., groups and dates),
+#' and aggregates topic weights for each combination of
+#' `date × group × topic`.  
+#'
+#' This function can return either a long-format table or a wide-format
+#' table, and it optionally plots topic trends over time.
+#'
+#' You can supply any aggregation function via `fun`, such as
+#' `sum`, `mean`, `median`, `sd`, or a custom function.
+#'
+#' @param document_topic_matrix Matrix with topics in rows and documents in columns.
+#' @param lookup_dict Data frame created via `build_lookup()` containing
+#'   columns `id`, `group`, and `date`.
+#' @param select Integer vector specifying which topics (rows) to include.
+#' @param tnames Optional custom topic names (must be same length as `select`).
+#' @param fun Aggregation function applied to topic weights within each
+#'   `date × group × topic` combination.  
+#'   Can be `sum`, `mean`, `"sum"`, `"mean"`, or any function like
+#'   `function(x) max(x) - min(x)`.
+#' @param plot_by Character: one of `"group"`, `"topic"`, or `"none"`.  
+#'   Determines which variable is used as color in the plot.
+#' @param out `"long"` or `"wide"`.  
+#'   `"long"` returns a tidy data frame;  
+#'   `"wide"` returns one column per topic.
+#' @param span Smoothing parameter for the LOESS smoothing line.
+#'
+#' @return Either:
+#' \describe{
+#'   \item{long}{A long-format data frame with columns `date`, `group`,
+#'     `topic`, and aggregated `doc_count`.}
+#'   \item{wide}{A wide-format data frame with one column per topic.}
+#' }
+#'
+#' If `plot_by != "none"`, a ggplot2 trend plot is also displayed.
+#'
+#' @examples
+#' # Suppose dtm is a topic × document matrix from an LDA model
+#' # and lookup is created with build_lookup().
+#'
+#' # Long-format summary using mean aggregation
+#' res <- decompose_lda(dtm, lookup, fun = mean, out = "long")
+#'
+#' # Wide-format summary using sum aggregation
+#' res2 <- decompose_lda(dtm, lookup, fun = sum, out = "wide")
+#'
+#' # Custom aggregation (e.g., max-minus-min)
+#' res3 <- decompose_lda(dtm, lookup, fun = function(x) max(x) - min(x))
+#'
+#' @export
+decompose_lda = function(document_topic_matrix,
+                         lookup_dict,
+                         select = 1:nrow(document_topic_matrix),
+                         tnames = paste0("topic", select),
+                         fun = "sum",
+                         plot_by = c("group", "topic", "none"),
+                         out = c("long", "wide"),
+                         span = 0.1) {
+  
+  out     = match.arg(out)
+  plot_by = match.arg(plot_by)
+  fun     = match.fun(fun)
+  
+  # Checks
+  if (!"id" %in% colnames(lookup_dict)) {
+    stop("'lookup_dict' must contain a column 'id'.")
+  }
+  if (!all(c("group", "date") %in% colnames(lookup_dict))) {
+    stop("'lookup_dict' must contain 'group' and 'date' columns.")
+  }
+  if (ncol(document_topic_matrix) != nrow(lookup_dict)) {
+    stop("Number of columns in 'document_topic_matrix' must match rows of 'lookup_dict'.")
+  }
+  if (length(select) != length(tnames)) {
+    stop("'select' and 'tnames' must have the same length.")
+  }
+  
+  # DTM: Topics auswählen
+  document_topic_matrix = document_topic_matrix[select, , drop = FALSE]
+  rownames(document_topic_matrix) = tnames
+  
+  # DTM: IDs als Spaltennamen
+  colnames(document_topic_matrix) = lookup_dict$id
+  
+  # Long format
+  long_format = document_topic_matrix |>
+    as.data.frame() |>
+    tibble::rownames_to_column("topic") |>
+    tidyr::pivot_longer(
+      cols      = -topic,
+      names_to  = "id",
+      values_to = "count"
+    )
+  
+  # Merge mit Lookup
+  merged_data = long_format |>
+    dplyr::left_join(lookup_dict, by = "id") |>
+    dplyr::group_by(date, group, topic) |>
+    dplyr::summarise(doc_count = fun(count), .groups = "drop")
+  
+  # Plot
+  if (plot_by != "none") {
+    facet_var = if (plot_by == "group") "topic" else "group"
+    
+    p = ggplot2::ggplot(
+      merged_data,
+      ggplot2::aes(x = date,
+                   y = doc_count,
+                   colour = .data[[facet_var]])
+    ) +
+      ggplot2::geom_smooth(se = FALSE, span = span) +
+      ggplot2::facet_wrap(stats::as.formula(paste("~", plot_by))) +
+      ggplot2::theme_minimal() +
+      ggplot2::labs(x = "date", y = "documents", colour = facet_var)
+    
+    print(p)
+  }
+  
+  # Output-Format
+  if (out == "long") {
+    return(merged_data)
+  } else {
+    wide = tidyr::pivot_wider(
+      merged_data,
+      id_cols     = c(date, group),
+      names_from  = topic,
+      values_from = doc_count,
+      values_fill = 0
+    )
+    return(wide)
+  }
+}
