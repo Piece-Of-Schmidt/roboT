@@ -744,7 +744,7 @@ build_lookup = function(ids = NULL,
 #' @return Either:
 #' \describe{
 #'   \item{long}{A long-format data frame with columns `date`, `group`,
-#'     `topic`, and aggregated `doc_count`.}
+#'     `topic`, and aggregated `topic_weight`.}
 #'   \item{wide}{A wide-format data frame with one column per topic.}
 #' }
 #'
@@ -812,7 +812,7 @@ decompose_lda = function(document_topic_matrix,
   merged_data = long_format |>
     dplyr::left_join(lookup_dict, by = "id") |>
     dplyr::group_by(date, group, topic) |>
-    dplyr::summarise(doc_count = fun(count), .groups = "drop")
+    dplyr::summarise(topic_weight = fun(count), .groups = "drop")
   
   # Plot
   if (plot_by != "none") {
@@ -821,7 +821,7 @@ decompose_lda = function(document_topic_matrix,
     p = ggplot2::ggplot(
       merged_data,
       ggplot2::aes(x = date,
-                   y = doc_count,
+                   y = topic_weight,
                    colour = .data[[facet_var]])
     ) +
       ggplot2::geom_smooth(se = FALSE, span = span) +
@@ -840,7 +840,7 @@ decompose_lda = function(document_topic_matrix,
       merged_data,
       id_cols     = c(date, group),
       names_from  = topic,
-      values_from = doc_count,
+      values_from = topic_weight,
       values_fill = 0
     )
     return(wide)
