@@ -771,7 +771,7 @@ decompose_lda = function(document_topic_matrix,
                          fun = "sum",
                          plot_by = c("group", "topic", "none"),
                          out = c("long", "wide"),
-                         span = 0.1) {
+                         span = 0.2) {
   
   out     = match.arg(out)
   plot_by = match.arg(plot_by)
