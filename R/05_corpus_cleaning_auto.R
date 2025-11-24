@@ -238,7 +238,7 @@ clean_complete = function(
   }
 
   # Filter Leads: Texte raus, die in den ersten X Zeichen uebereinstimmen
-  if(!is.null(check_dups_textleads)){
+  if(!is.null(check_dups_textleads) && !is.logical(check_dups_textleads)){
     a = Sys.time()
     before = nrow(corpus$meta)
     cat("Filter Leads...")
