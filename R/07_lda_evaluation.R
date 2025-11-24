@@ -827,7 +827,7 @@ decompose_lda = function(document_topic_matrix,
       ggplot2::geom_smooth(se = FALSE, span = span) +
       ggplot2::facet_wrap(stats::as.formula(paste("~", plot_by))) +
       ggplot2::theme_minimal() +
-      ggplot2::labs(x = "date", y = "documents", colour = facet_var)
+      ggplot2::labs(x = "date", y = "topic weight", colour = facet_var)
     
     print(p)
   }
