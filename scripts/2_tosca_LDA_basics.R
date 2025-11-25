@@ -146,7 +146,7 @@ lookup = build_lookup(
 
 # LDA-Ergebnis zerlegen:
 # Wie stark ist jedes Topic pro Jahr und pro Quelle vertreten?
-topic_weights_per_group = decompose_lda(
+twpg = topic_weights_by_group(
   document_topic_matrix = result_K8$document_sums,
   lookup_dict           = lookup,
   plot_by               = "topic",
@@ -155,7 +155,7 @@ topic_weights_per_group = decompose_lda(
 )
 
 # Vorschau
-head(topic_weights_per_group)
+head(twpg)
 
 
 
@@ -181,6 +181,7 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
 
 
