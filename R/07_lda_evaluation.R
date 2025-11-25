@@ -760,16 +760,16 @@ build_lookup = function(ids = NULL,
 #' # and lookup is created with build_lookup().
 #'
 #' # Long-format summary using mean aggregation
-#' res = topic_counts_by_group(dtm, lookup, fun = mean, out = "long")
+#' res = topic_weights_by_group(dtm, lookup, fun = mean, out = "long")
 #'
 #' # Wide-format summary using sum aggregation
-#' res2 = topic_counts_by_group(dtm, lookup, fun = sum, out = "wide")
+#' res2 = topic_weights_by_group(dtm, lookup, fun = sum, out = "wide")
 #'
 #' # Custom aggregation (e.g., max-minus-min)
-#' res3 = topic_counts_by_group(dtm, lookup, fun = function(x) max(x) - min(x))
+#' res3 = topic_weights_by_group(dtm, lookup, fun = function(x) max(x) - min(x))
 #'
 #' @export
-topic_counts_by_group = function(document_topic_matrix,
+topic_weights_by_group = function(document_topic_matrix,
                          lookup_dict,
                          select = 1:nrow(document_topic_matrix),
                          tnames = paste0("topic", select),
@@ -988,4 +988,5 @@ topic_word_matrix = function(docs,
   if(as_dfm) mat = quanteda::as.dfm(mat)
   
   return(mat)
+
 }
