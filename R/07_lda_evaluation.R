@@ -631,6 +631,11 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
 }
 
 
+# -------------------------------------------------------------------------
+# decompose LDA result
+# -------------------------------------------------------------------------
+
+
 # decompose LDA result ---------------------------------------------------
 
 
@@ -664,19 +669,19 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
 #'
 #' @examples
 #' # Using separate vectors
-#' lookup <- build_lookup(
+#' lookup = build_lookup(
 #'   ids = c("d1", "d2", "d3"),
 #'   groups = c("A", "B", "A"),
 #'   dates = as.Date(c("2020-01-01", "2020-01-02", "2020-01-03"))
 #' )
 #'
 #' # Using an existing data frame
-#' df <- data.frame(
+#' df = data.frame(
 #'   id = 1:3,
 #'   group = c("x", "y", "x"),
 #'   date = Sys.Date() + 0:2
 #' )
-#' lookup2 <- build_lookup(frame = df)
+#' lookup2 = build_lookup(frame = df)
 #'
 #' @export
 build_lookup = function(ids = NULL,
@@ -755,16 +760,16 @@ build_lookup = function(ids = NULL,
 #' # and lookup is created with build_lookup().
 #'
 #' # Long-format summary using mean aggregation
-#' res <- decompose_lda(dtm, lookup, fun = mean, out = "long")
+#' res = topic_counts_by_group(dtm, lookup, fun = mean, out = "long")
 #'
 #' # Wide-format summary using sum aggregation
-#' res2 <- decompose_lda(dtm, lookup, fun = sum, out = "wide")
+#' res2 = topic_counts_by_group(dtm, lookup, fun = sum, out = "wide")
 #'
 #' # Custom aggregation (e.g., max-minus-min)
-#' res3 <- decompose_lda(dtm, lookup, fun = function(x) max(x) - min(x))
+#' res3 = topic_counts_by_group(dtm, lookup, fun = function(x) max(x) - min(x))
 #'
 #' @export
-decompose_lda = function(document_topic_matrix,
+topic_counts_by_group = function(document_topic_matrix,
                          lookup_dict,
                          select = 1:nrow(document_topic_matrix),
                          tnames = paste0("topic", select),
@@ -845,4 +850,142 @@ decompose_lda = function(document_topic_matrix,
     )
     return(wide)
   }
+}
+
+
+#' Create a topic–word chunk matrix from LDA assignments
+#'
+#' Extracts a **Topic × Word** frequency matrix for a selected subset of
+#' documents from an LDA model.  
+#'
+#' This function takes the tokenized documents (`docs`), the vocabulary
+#' (`vocab`), and the per-token topic assignments (`assignments`), and
+#' returns a matrix where:
+#'
+#' * rows = topics  
+#' * columns = word types (tokens)  
+#' * cells = number of occurrences of a word assigned to a topic  
+#'
+#' Optionally, the result can be returned as a
+#' [`quanteda`](https://quanteda.io/) `dfm` object for further analysis.
+#'
+#'
+#' @param docs A list of documents as produced by `tosca::LDAprep()`.
+#'   Each element is a 2×N matrix with:
+#'   \describe{
+#'     \item{[1, ]}{token IDs (0-based, therefore internally converted using +1)}
+#'     \item{[2, ]}{token counts (ignored here because `assignments` provides per-token topic info)}
+#'   }
+#'
+#' @param vocab Character vector containing the vocabulary corresponding to
+#'   token IDs in `docs`. `vocab[i]` must be the word for token‐ID `i`.
+#'
+#' @param assignments A list of the same length as `docs`, where each element
+#'   is an integer vector giving the **topic assignment per token**.
+#'   Topic IDs must be 0-based (as in `topicmodels`), and are converted to
+#'   1-based internally.
+#'
+#' @param filter Optional. Which documents to include.  
+#'   Can be:
+#'   \itemize{
+#'     \item numeric vector of indices (e.g., `1:100`)
+#'     \item logical vector of length `length(docs)`
+#'     \item character vector of length `length(docs)` indicating document names. Only works if assignments and docs are named equally!
+#'     \item `NULL` (default): all documents
+#'   }
+#'
+#' @param select_tokens Optional character vector specifying which vocabulary
+#'   items (columns) to keep.  
+#'   Tokens not present in the matrix are silently ignored.
+#'
+#' @param select_topics Optional numeric vector specifying which topics
+#'   (rows) to keep.
+#'
+#' @param as_dfm Logical (default: `TRUE`).  
+#'   If `TRUE`, returns the result as a `quanteda::dfm` object.
+#'   If `FALSE`, returns a plain numeric matrix.
+#'
+#' @return A **Topic × Word** matrix or `dfm`, depending on `as_dfm`.
+#'
+#' @examples
+#' \dontrun{
+#' # Assume docs, vocab, and assignments come from an LDA model
+#'
+#' # Topic × Word matrix for all documents
+#' mat = topic_word_matrix(docs, vocab, assignments)
+#'
+#' # Only for documents from source "NYT"
+#' idxs = corp$meta$resource == "NYT"
+#' mat_nyt = topic_word_matrix(docs, vocab, assignments, filter = idxs)
+#'
+#' # Select only specific tokens
+#' mat_subset = topic_word_matrix(
+#'   docs, vocab, assignments,
+#'   select_tokens = c("inflation", "economy", "market")
+#' )
+#'
+#' # Return plain matrix instead of dfm
+#' mat_raw = topic_word_matrix(
+#'   docs, vocab, assignments,
+#'   as_dfm = FALSE
+#' )
+#' }
+#'
+#' @export
+topic_word_matrix = function(docs,
+                            vocab,
+                            assignments,
+                            filter = seq_along(docs),
+                            select_tokens = NULL,
+                            select_topics = NULL,
+                            as_dfm = TRUE) {
+  
+  # make sure assignments and docs match
+  if (length(assignments) != length(docs)) {
+    stop("'docs' and 'assignments' must have the same length.")
+  }
+  
+  # docs[[i]][1, ] contains Word IDs. Indices are 0-based, thus +1
+  wids = unlist(
+    lapply(docs[filter], function(doc) doc[1, ]), use.names = FALSE
+  ) + 1L
+  
+  # Namen = Wortformen
+  token_forms = vocab[wids]
+  
+  # get assignments
+  tops = unlist(assignments[filter], use.names = FALSE) + 1L
+  
+  if (length(tops) != length(wids)) {
+    stop("Length of 'tops' and 'wids' must match. Check 'docs' and 'assignments'.")
+  }
+  
+  # main calculation: count tokens per topic
+  mat = table(
+    topic = tops,
+    token = token_forms
+  )
+  # convert from table to matrix
+  class(mat) <- "matrix" 
+  
+  # select tokens if value is provided
+  if(!is.null(select_tokens)){
+    if(is.numeric(select_tokens)){
+      mat = mat[, select_tokens, drop = FALSE]
+    }else{
+      keep = intersect(colnames(mat), select_tokens)
+      if (length(keep) == 0L) stop("None of the 'select_tokens' are present in the matrix.")
+      mat = mat[, keep, drop = FALSE]
+    }
+  }
+  
+  # select topics if value is provided
+  if(!is.null(select_topics)){
+    mat = mat[select_topics, , drop = FALSE]
+  }
+  
+  # return quanteda::dfm if desired
+  if(as_dfm) mat = quanteda::as.dfm(mat)
+  
+  return(mat)
 }
