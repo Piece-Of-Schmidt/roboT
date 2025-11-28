@@ -597,10 +597,11 @@ get_simdata = function(rollinglda_out, pm.backend = "socket", ncpus = 1){
 #' @param filename Name of file. If `NULL`, no export is performed.
 #' @param width Width of plot.
 #' @param height Height of plot.
+#' @param print_code if TRUE, print ggplot code in console.
 #' @return Invisibly returns plot file.
 #' @export
 #' @importFrom GGally ggmatrix
-print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab="", filename=NULL, width=8, height=10){
+print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab="", filename=NULL, width=8, height=10, print_code=F){
   
   xquarter = simdata$xquarter
   valq = simdata$valq
@@ -615,10 +616,23 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
       geom_line(aes(x = xquarter, y = valq_first[,i], col = "green")) +
       geom_line(aes(x = xquarter, y = valq_last[,i], col = "red")) +
       geom_line(aes(x = xquarter, y = valq[,i])) +
+      theme_bw() +
       annotate("text", x = xmin, y = 0.05, label = labels[i], hjust = 0, vjust = 0)
   }), nrow = nrow, ncol = ncol, ylab = ylab, xlab = xlab, title = title)
   
   # print
+  if(print_code){
+    cat('cosine_quarterly = GGally::ggmatrix(lapply(topics, function(i){
+    ggplot() + geom_line(aes(x = xquarter, y = valq[,i]), col = "darkgrey") + ylim(c(0,1)) +
+      geom_line(aes(x = xquarter, y = valq_first[,i], col = "green")) +
+      geom_line(aes(x = xquarter, y = valq_last[,i], col = "red")) +
+      geom_line(aes(x = xquarter, y = valq[,i])) +
+      theme_bw() +
+      annotate("text", x = xmin, y = 0.05, label = labels[i], hjust = 0, vjust = 0)
+  }), nrow = nrow, ncol = ncol, ylab = ylab, xlab = xlab, title = title)')
+  }
+  
+  # save locally
   if(!is.null(filename)){
     pdf(paste0(sub("([.]\\w{3})$","",filename), ".pdf"), width = width, height = height)
     print(cosine_quarterly)
@@ -628,7 +642,7 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
   # return
   print(cosine_quarterly)
   invisible(cosine_quarterly)
-
+  
 }
 
 
