@@ -599,6 +599,7 @@ get_simdata = function(rollinglda_out, pm.backend = "socket", ncpus = 1){
 #' @param height Height of plot.
 #' @return Invisibly returns plot file.
 #' @export
+#' @importFrom GGally ggmatrix
 print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab="", filename=NULL, width=8, height=10){
   
   xquarter = simdata$xquarter
@@ -609,7 +610,7 @@ print_sims = function(simdata, nrow, ncol, labels=NULL, title="", xlab="", ylab=
   
   if(is.null(labels)) labels = paste0("Topic",topics)
   xmin = min(xquarter)
-  cosine_quarterly = ggmatrix(lapply(topics, function(i){
+  cosine_quarterly = GGally::ggmatrix(lapply(topics, function(i){
     ggplot() + geom_line(aes(x = xquarter, y = valq[,i]), col = "darkgrey") + ylim(c(0,1)) +
       geom_line(aes(x = xquarter, y = valq_first[,i], col = "green")) +
       geom_line(aes(x = xquarter, y = valq_last[,i], col = "red")) +
@@ -990,3 +991,4 @@ topic_word_matrix = function(docs,
   return(mat)
 
 }
+
