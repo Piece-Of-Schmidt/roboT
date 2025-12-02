@@ -21,7 +21,7 @@ plotScot(corp)
 
 # Anz. Artikel im Zeitverlauf, in denen ein best. Suchwort vorkommt
 worte = c("America", "World", "Love")
-plotFreq(corp, wordlist = worte)
+plotFreq(corp, wordlist = worte, unit = "year")
 
 
 
@@ -181,6 +181,7 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
 
 
