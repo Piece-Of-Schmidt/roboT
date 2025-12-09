@@ -124,32 +124,14 @@ write.csv2(plot, "plot.csv")
 # LDA-Ergebnis nach Quelle und Jahr zerlegen
 # -------------------------------------------------------------------------
 
-library(lubridate)
-
-# Dokument-IDs aus dem LDA-Objekt holen
-doc_ids = names(docs)
-
-# Metadaten der entsprechenden Dokumente aus dem Korpus holen
-# (so stellen wir sicher, dass Reihenfolge zu doc_ids passt)
-doc_meta = corp$meta[match(doc_ids, corp$meta$id), ]
-
-# Quelle und Jahr bestimmen
-doc_sources = doc_meta$resource                    # hier "moviepilot" und "wikipedia" # auch andere Gruppierungen sind möglich!
-doc_years   = floor_date(doc_meta$date, "year")    # z.B. 1980-01-01, 1976-10-08, ...
-
-# Lookup-Tabelle bauen: welche ID gehört zu welcher Quelle / welchem Jahr?
-lookup = build_lookup(
-  ids    = doc_ids,
-  groups = doc_sources,
-  dates  = doc_years
-); head(lookup) # Vorschau
-
 # LDA-Ergebnis zerlegen:
 # Wie stark ist jedes Topic pro Jahr und pro Quelle vertreten?
 twpg = topic_weights_by_group(
   document_topic_matrix = result_K8$document_sums,
-  lookup_dict           = lookup,
-  plot_by               = "topic",
+  meta                  = corp$meta,
+  ldaID                 = names(docs),
+  group_col             = "resource",
+  plot_by               = "topic", # oder "group"
   span                  = 0.5,
   out                   = "long" # oder "wide"
 )
