@@ -732,28 +732,32 @@ build_lookup = function(ids = NULL,
 }
 
 
-#' Decompose an LDA topic-document matrix by groups and dates
+#' Aggregate LDA topic weights by groups and time (with optional plotting)
 #'
-#' Takes a document-topic matrix (rows = topics, columns = documents),
-#' merges it with document metadata (e.g., groups and dates),
-#' and aggregates topic weights for each combination of
-#' `date × group × topic`.  
+#' This function aggregates topic proportions from an LDA topic-document matrix
+#' (`topics × documents`) using document metadata such as publication date and
+#' source/group. It simplifies the workflow for **tosca**-style corpora where
+#' metadata is stored in `corpus$meta` and enables quick topic trend analyses.
 #'
-#' This function can return either a long-format table or a wide-format
-#' table, and it optionally plots topic trends over time.
+#' For each combination of **date × group × topic**, the topic weights are
+#' aggregated using an arbitrary function (`sum`, `mean`, `median`, etc.).
+#' The result can be returned in long or wide format, and an optional time-series
+#' plot visualizes topic trends across groups.
 #'
-#' You can supply any aggregation function via `fun`, such as
-#' `sum`, `mean`, `median`, `sd`, or a custom function.
-#'
-#' @param document_topic_matrix Matrix with topics in rows and documents in columns.
-#' @param lookup_dict Data frame created via `build_lookup()` containing
-#'   columns `id`, `group`, and `date`.
-#' @param select Integer vector specifying which topics (rows) to include.
-#' @param tnames Optional custom topic names (must be same length as `select`).
-#' @param fun Aggregation function applied to topic weights within each
-#'   `date × group × topic` combination.  
-#'   Can be `sum`, `mean`, `"sum"`, `"mean"`, or any function like
-#'   `function(x) max(x) - min(x)`.
+#' @param document_topic_matrix A matrix with **topics in rows** and
+#'   **documents in columns**, typically `result$document_sums` from LDA.
+#' @param meta A metadata table (e.g. `corpus$meta`) containing document
+#'   identifiers and grouping variables.
+#' @param id_col Name of the document ID column in `meta`.
+#' @param group_col Name of the grouping variable (e.g. `"resource"`,
+#'   `"newspaper"`, `"country"`).
+#' @param date_col Name of the date column (`Date` or POSIXt).
+#' @param date_unit Temporal aggregation level passed to `floor_date()`,
+#'   e.g. `"month"`, `"year"`, `"quarter"`.
+#' @param select Topics to include (row indices of the topic matrix).
+#' @param tnames Optional custom topic names (must match length of `select`).
+#' @param fun Aggregation function applied per group/date/topic.
+#'   Accepts `"sum"`, `"mean"`, `"median"`, `"sd"` or any custom function.
 #' @param plot_by Character: one of `"group"`, `"topic"`, or `"none"`.  
 #'   Determines which variable is used as color in the plot.
 #' @param out `"long"` or `"wide"`.  
@@ -775,7 +779,7 @@ build_lookup = function(ids = NULL,
 #' # and lookup is created with build_lookup().
 #'
 #' # Long-format summary using mean aggregation
-#' res = topic_weights_by_group(dtm, lookup, fun = mean, out = "long")
+#' res = topic_weights_by_group(dtm, corpus$meta, fun = mean, out = "long")
 #'
 #' # Wide-format summary using sum aggregation
 #' res2 = topic_weights_by_group(dtm, lookup, fun = sum, out = "wide")
@@ -785,40 +789,51 @@ build_lookup = function(ids = NULL,
 #'
 #' @export
 topic_weights_by_group = function(document_topic_matrix,
-                         lookup_dict,
-                         select = 1:nrow(document_topic_matrix),
-                         tnames = paste0("topic", select),
-                         fun = "sum",
-                         plot_by = c("group", "topic", "none"),
-                         out = c("long", "wide"),
-                         span = 0.2) {
+                                  meta,
+                                  date_col  = "date",
+                                  id_col    = "id",
+                                  group_col = "resource",
+                                  select    = 1:nrow(document_topic_matrix),
+                                  tnames    = paste0("topic", select),
+                                  date_unit = "month",
+                                  fun       = "sum",
+                                  plot_by   = c("group", "topic", "none"),
+                                  out       = c("long", "wide"),
+                                  span      = 0.2) {
   
   out     = match.arg(out)
   plot_by = match.arg(plot_by)
   fun     = match.fun(fun)
   
   # Checks
-  if (!"id" %in% colnames(lookup_dict)) {
-    stop("'lookup_dict' must contain a column 'id'.")
+  if (!id_col %in% colnames(meta)) {
+    stop("'meta' must contain a column '", id_col, "'.")
   }
-  if (!all(c("group", "date") %in% colnames(lookup_dict))) {
-    stop("'lookup_dict' must contain 'group' and 'date' columns.")
+  if (!all(c(group_col, date_col) %in% colnames(meta))) {
+    stop("'meta' must contain columns '", group_col, "' and '", date_col, "'.")
   }
-  if (ncol(document_topic_matrix) != nrow(lookup_dict)) {
-    stop("Number of columns in 'document_topic_matrix' must match rows of 'lookup_dict'.")
+  if (ncol(document_topic_matrix) != nrow(meta)) {
+    stop("Number of columns in 'document_topic_matrix' must match rows of 'meta'.")
   }
   if (length(select) != length(tnames)) {
     stop("'select' and 'tnames' must have the same length.")
   }
   
-  # DTM: Topics auswählen
+  # rename to standard names
+  colnames(meta)[match(c(id_col, date_col, group_col), colnames(meta))] <-
+    c("id", "date", "group")
+  
+  # floor dates
+  meta$date = floor_date(meta$date, date_unit)
+  
+  # select topics
   document_topic_matrix = document_topic_matrix[select, , drop = FALSE]
   rownames(document_topic_matrix) = tnames
   
-  # DTM: IDs als Spaltennamen
-  colnames(document_topic_matrix) = lookup_dict$id
+  # IDs as colnames
+  colnames(document_topic_matrix) = meta$id
   
-  # Long format
+  # long format
   long_format = document_topic_matrix |>
     as.data.frame() |>
     tibble::rownames_to_column("topic") |>
@@ -828,9 +843,9 @@ topic_weights_by_group = function(document_topic_matrix,
       values_to = "count"
     )
   
-  # Merge mit Lookup
+  # merge + aggregate
   merged_data = long_format |>
-    dplyr::left_join(lookup_dict, by = "id") |>
+    dplyr::left_join(meta, by = "id") |>
     dplyr::group_by(date, group, topic) |>
     dplyr::summarise(topic_weight = fun(count), .groups = "drop")
   
