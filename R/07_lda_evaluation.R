@@ -748,6 +748,7 @@ build_lookup = function(ids = NULL,
 #'   **documents in columns**, typically `result$document_sums` from LDA.
 #' @param meta A metadata table (e.g. `corpus$meta`) containing document
 #'   identifiers and grouping variables.
+#' @param ldaID Document IDs used in the LDA model.
 #' @param id_col Name of the document ID column in `meta`.
 #' @param group_col Name of the grouping variable (e.g. `"resource"`,
 #'   `"newspaper"`, `"country"`).
@@ -779,7 +780,7 @@ build_lookup = function(ids = NULL,
 #' # and lookup is created with build_lookup().
 #'
 #' # Long-format summary using mean aggregation
-#' res = topic_weights_by_group(dtm, corpus$meta, fun = mean, out = "long")
+#' res = topic_weights_by_group(dtm, lookup, fun = mean, out = "long")
 #'
 #' # Wide-format summary using sum aggregation
 #' res2 = topic_weights_by_group(dtm, lookup, fun = sum, out = "wide")
@@ -790,6 +791,7 @@ build_lookup = function(ids = NULL,
 #' @export
 topic_weights_by_group = function(document_topic_matrix,
                                   meta,
+                                  ldaID     = NULL,
                                   date_col  = "date",
                                   id_col    = "id",
                                   group_col = "resource",
@@ -812,16 +814,20 @@ topic_weights_by_group = function(document_topic_matrix,
   if (!all(c(group_col, date_col) %in% colnames(meta))) {
     stop("'meta' must contain columns '", group_col, "' and '", date_col, "'.")
   }
+
+  # rename to standard names
+  colnames(meta)[match(c(id_col, date_col, group_col), colnames(meta))] =
+    c("id", "date", "group")
+  
+  # restrict meta data to documents that were part of LDA
+  if(!is.null(ldaID)) meta = subset(meta, id %in% ldaID)
+  
   if (ncol(document_topic_matrix) != nrow(meta)) {
     stop("Number of columns in 'document_topic_matrix' must match rows of 'meta'.")
   }
   if (length(select) != length(tnames)) {
     stop("'select' and 'tnames' must have the same length.")
   }
-  
-  # rename to standard names
-  colnames(meta)[match(c(id_col, date_col, group_col), colnames(meta))] <-
-    c("id", "date", "group")
   
   # floor dates
   meta$date = floor_date(meta$date, date_unit)
@@ -881,6 +887,7 @@ topic_weights_by_group = function(document_topic_matrix,
     return(wide)
   }
 }
+
 
 
 #' Create a topic–word chunk matrix from LDA assignments
