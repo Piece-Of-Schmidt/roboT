@@ -64,7 +64,7 @@ seed = 123 # arbitrary choice
 
 # select sample dates for top texts per quarter <- an Korpus-Größe (min-Date, max-Date) anpassen
 if (FALSE){ # set to TRUE and select relevant dates, if you wish to generate top texts per month/quarter/year only for selected dates
-  rel_dates = as.Date(c("2001-04-01", "2005-06-01", "2010-07-01", "2013-10-01", "2016-05-01", "2019-06-01", "2022-08-01", "2025-01-01")) # arbitrary selection
+  rel_dates = as.Date(c("1976-07-01", "1979-07-01", "1980-07-01", "1983-07-01")) # arbitrary selection
 } else rel_dates = NULL
 
 # loop through all k values
@@ -181,6 +181,7 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
 
 
