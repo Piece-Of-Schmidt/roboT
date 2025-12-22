@@ -125,3 +125,65 @@ multipleLDAs = function(..., func="LDAgen", data_vars=c("x", "texts", "dates", "
   } else return(grid)  
 
 }
+
+
+# EXPERIMENTAL:
+get_rolling_at_time = function(obj, date){
+  
+  # get individual items ----------------------------------------------------
+  
+  # get names of rel documents (stem)
+  rel_dates = obj$dates[obj$dates <= date] 
+  rel_documents = names(rel_dates)
+  
+  # get relevant vocab (stem)
+  rel_vocab_idx = lapply(obj$docs[rel_documents], \(d) d[1,]) |>
+    unlist() |>
+    unique()
+  
+  # check vocab length
+  length(rel_vocab) == obj$chunks[1, n.vocab]
+  
+  # get words
+  rel_vocab = obj$vocab[rel_vocab_idx+1]
+  
+  # get assignments
+  rel_assignments = obj$lda$assignments[seq_along(rel_documents)]
+  
+  # get topicXtopic assignments - and reorder so it matches old topic matrix
+  rel_topics = topic_word_matrix(obj$docs, obj$vocab, obj$lda$assignments, select_tokens=rel_vocab, as_dfm=F)
+  words_in_order = intersect(colnames(obj$lda$topics), colnames(rel_topics))
+  rel_topics = rel_topics[, words_in_order]
+  
+  # check
+  ncol(rel_topics) == obj$chunks[1, n.vocab]
+  all(colnames(rel_topics) == colnames(obj$lda$topics)[1:obj$chunks[1, n.vocab]])
+  
+  # get documents_sums - and check
+  rel_doc_sums = obj$lda$document_sums[, seq_along(rel_documents)]
+  ncol(rel_doc_sums) == obj$chunks[1, n]
+  
+  # get docs
+  rel_docs = obj$docs[rel_documents]
+  
+  # build chunks
+  rel_chunks = obj$chunks[1,]
+  
+  
+  # rebuild rolling object --------------------------------------------------
+  
+  rolling_new = obj
+  
+  rolling_new$lda$assignments = rel_assignments
+  rolling_new$lda$topics = rel_topics
+  rolling_new$lda$document_sums = rel_doc_sums
+  
+  rolling_new$docs = rel_docs
+  rolling_new$dates = rel_dates
+  rolling_new$vocab = words_in_order
+  rolling_new$chunks = rel_chunks
+  
+  # return
+  return(rolling_new)
+  
+}
