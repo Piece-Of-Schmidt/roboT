@@ -142,7 +142,7 @@ get_rolling_at_time = function(obj, date){
     unique()
   
   # check vocab length
-  length(rel_vocab) == obj$chunks[1, n.vocab]
+  # length(rel_vocab) == obj$chunks[1, n.vocab]
   
   # get words
   rel_vocab = obj$vocab[rel_vocab_idx+1]
@@ -156,12 +156,12 @@ get_rolling_at_time = function(obj, date){
   rel_topics = rel_topics[, words_in_order]
   
   # check
-  ncol(rel_topics) == obj$chunks[1, n.vocab]
-  all(colnames(rel_topics) == colnames(obj$lda$topics)[1:obj$chunks[1, n.vocab]])
+  # ncol(rel_topics) == obj$chunks[1, n.vocab]
+  # all(colnames(rel_topics) == colnames(obj$lda$topics)[1:obj$chunks[1, n.vocab]])
   
   # get documents_sums - and check
   rel_doc_sums = obj$lda$document_sums[, seq_along(rel_documents)]
-  ncol(rel_doc_sums) == obj$chunks[1, n]
+  # ncol(rel_doc_sums) == obj$chunks[1, n]
   
   # get docs
   rel_docs = obj$docs[rel_documents]
@@ -187,3 +187,4 @@ get_rolling_at_time = function(obj, date){
   return(rolling_new)
   
 }
+
