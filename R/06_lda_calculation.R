@@ -150,8 +150,11 @@ get_rolling_at_time = function(obj, date){
   # get assignments
   rel_assignments = obj$lda$assignments[seq_along(rel_documents)]
   
+  # get docs
+  rel_docs = obj$docs[rel_documents]
+  
   # get topicXtopic assignments - and reorder so it matches old topic matrix
-  rel_topics = topic_word_matrix(obj$docs, obj$vocab, obj$lda$assignments, select_tokens=rel_vocab, as_dfm=F)
+  rel_topics = topic_word_matrix(rel_docs, rel_vocab, rel_assignments, as_dfm=F)
   words_in_order = intersect(colnames(obj$lda$topics), colnames(rel_topics))
   rel_topics = rel_topics[, words_in_order]
   
@@ -162,9 +165,6 @@ get_rolling_at_time = function(obj, date){
   # get documents_sums - and check
   rel_doc_sums = obj$lda$document_sums[, seq_along(rel_documents)]
   # ncol(rel_doc_sums) == obj$chunks[1, n]
-  
-  # get docs
-  rel_docs = obj$docs[rel_documents]
   
   # build chunks
   rel_chunks = obj$chunks[1,]
@@ -187,4 +187,5 @@ get_rolling_at_time = function(obj, date){
   return(rolling_new)
   
 }
+
 
