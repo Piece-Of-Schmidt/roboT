@@ -777,16 +777,16 @@ build_lookup = function(ids = NULL,
 #'
 #' @examples
 #' # Suppose dtm is a topic × document matrix from an LDA model
-#' # and lookup is created with build_lookup().
+#' # and meta is created with build_lookup().
 #'
 #' # Long-format summary using mean aggregation
-#' res = topic_weights_by_group(dtm, lookup, fun = mean, out = "long")
+#' res = topic_weights_by_group(dtm, meta, fun = mean, out = "long")
 #'
 #' # Wide-format summary using sum aggregation
-#' res2 = topic_weights_by_group(dtm, lookup, fun = sum, out = "wide")
+#' res2 = topic_weights_by_group(dtm, meta, fun = sum, out = "wide")
 #'
 #' # Custom aggregation (e.g., max-minus-min)
-#' res3 = topic_weights_by_group(dtm, lookup, fun = function(x) max(x) - min(x))
+#' res3 = topic_weights_by_group(dtm, meta, fun = function(x) max(x) - min(x))
 #'
 #' @export
 topic_weights_by_group = function(document_topic_matrix,
@@ -1027,4 +1027,5 @@ topic_word_matrix = function(docs,
   return(mat)
 
 }
+
 
