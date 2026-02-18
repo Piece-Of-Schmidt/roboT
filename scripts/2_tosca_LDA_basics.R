@@ -43,6 +43,9 @@ saveRDS(tokenizedCorpus, "tokenizedCorpus.rds") # -> Objekt speichern. Das brauc
 wordlist = makeWordlist(tokenizedCorpus$text)
 vocab = wordlist$words
 
+# remove short types
+vocab = vocab[nchar(vocab) == 1] # only keep tokens with more than one character
+
 # optional: rare words rauswerfen
 min_occurence = 4
 vocab = wordlist$words[wordlist$wordtable >= min_occurence]
@@ -163,6 +166,7 @@ Ausserdem werden auf diese Weise auch unnoetige Objekte mit gespeichert.
 # save everything
 current_time = gsub(":","-",format(Sys.time(), "%X"))
 save.image(paste0("analysis_", current_time, ".RData"))
+
 
 
 
