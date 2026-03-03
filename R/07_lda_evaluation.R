@@ -172,6 +172,7 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #' @param numWords Number of top words per topic (default: 50).
 #' @param min_docs_per_chunk Number of words a chunks has to contain to be considered.
 #' @param tnames Optional topic names.
+#' @param select_dates Create topwords oly for relevant periods. Default: NULL (=all periods).
 #' @param values Logical. Should word weights be included in output?
 #' @param file File path for saving (`.xlsx` or `.csv`).
 #' @param verbose Print progress?
@@ -181,7 +182,7 @@ lda_getTopWords = function(ldaresult, numWords=50, file="topwords",
 #'
 #' @examples
 #' # lda_getTopWordsPerUnit(corpus, ldaresult, docs, unit = "quarter", file = "tw.xlsx")
-lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=1, tnames=NULL, values=F, file=NULL, verbose=T){
+lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWords=50, min_docs_per_chunk=1, tnames=NULL, select_dates=NULL, values=F, file=NULL, verbose=T){
   
   # safety belt
   if(missing("corpus") || missing("ldaresult") || missing("docs")) stop("Insert arguments for corpus, ldaresult, and docs")
@@ -202,7 +203,7 @@ lda_getTopWordsPerUnit = function(corpus, ldaresult, docs, unit="quarter", numWo
   
   # create date chunks
   floor_dates = lubridate::floor_date(corpus$meta$date, unit)
-  chunks = unique(floor_dates)
+  chunks = if(!is.null(select_dates)) unique(lubridate::floor_date(select_dates, unit)) else unique(floor_dates)
   chunks = chunks[table(floor_dates) > min_docs_per_chunk]
   
   # for every date chunk do the following
@@ -432,7 +433,9 @@ toptextsperunit_groupbytopic = function(corpus, doc, ldaID, select_topics, chunk
 #' @param unit Time unit (`"month"`, `"bimonth"`, `"quarter"`, `"halfyear"`, `"year"`).
 #' @param nTopTexts Number of top texts per topic and unit.
 #' @param tnames Optional custom topic names (used also for file names with groupby="topic").
-#' @param groupby "date" (default: 1 Datei pro Zeit-Chunk) oder "topic" (neu: 1 Datei pro Topic).
+#' @param groupby "date" (default: 1 Datei pro Zeit-Chunk) oder "topic"
+#' @param select_topics Create toptexts oly for relevant topics. Default: all topics.
+#' @param select_dates Create toptexts oly for relevant periods. Default: NULL (=all periods).
 #' @param foldername Output folder name. If `NULL`, no export is performed.
 #' @param translate Logical. Translate texts and titles?
 #' @param max_text_length Max. length of exported text.
