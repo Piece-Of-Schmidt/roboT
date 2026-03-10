@@ -133,6 +133,8 @@ write.csv2(plot, "plot.csv")
 # LDA-Ergebnis nach Quelle und Jahr zerlegen
 # -------------------------------------------------------------------------
 
+library(lubridate)
+
 # LDA-Ergebnis zerlegen:
 # Wie stark ist jedes Topic pro Jahr und pro Quelle vertreten?
 twpg = topic_weights_by_group(
