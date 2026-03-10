@@ -99,6 +99,12 @@ for(k in K_WERTE){
 
   # plot topics
   plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = FALSE, curves = "both", smooth = 0.1, unit = "quarter", legend = "topleft", pages = TRUE, file = sprintf("K%d/topics_over_time_K%d_seed%d.pdf", k, k, seed))
+  
+  # counts
+  counts = plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = FALSE, unit = "quarter")
+  counts_rel = plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = TRUE, unit = "quarter")
+  write.csv(counts, sprintf("K%d/counts_K%d_seed%d", k, k, seed))
+  write.csv(counts_rel, sprintf("K%d/countsrel_K%d_seed%d", k, k, seed))
 
 }; message("files are stored in: ", getwd())
 
