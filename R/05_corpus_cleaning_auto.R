@@ -69,7 +69,7 @@ clean_complete = function(
   if(!is.null(min_text_length) || !is.null(max_text_length)){
     a = Sys.time()
     cat("Calculate text lengths...")
-    text_chars = nchar(unlist(corpus$text), type=calculate_text_len_type)
+    text_chars = vapply(corpus$text, function(x) sum(nchar(x, type=calculate_text_len_type)), numeric(1))
     diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"), "\n")
   }
