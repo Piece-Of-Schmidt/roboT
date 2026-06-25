@@ -58,6 +58,12 @@ clean_complete = function(
     verbose=F
 ){
 
+  if(length(corpus$text) != nrow(corpus$meta)){
+    warning(sprintf("Input mismatch: %d texts vs %d meta rows. Aligning to common IDs.",
+                    length(corpus$text), nrow(corpus$meta)))
+    corpus = tosca::filterID(corpus, intersect(names(corpus$text), corpus$meta$id))
+  }
+
   # calculate text lengths based on 'calculate_text_len_type' method (default 'bytes')
   before_whole = length(corpus$text)
   if(!is.null(min_text_length) || !is.null(max_text_length)){
@@ -78,6 +84,7 @@ clean_complete = function(
     mask = text_chars <= max_text_length
     text_chars = text_chars[mask]
     corpus = tosca::filterID(corpus, names(text_chars))
+    diff = difftime(Sys.time(), a)
     cat(" Done. Time for computation:", round(diff,3), attr(diff, "unit"))
     cat(sprintf(" | Kept %d out of %d articles / %d removed (%.2f%%)\n",
                 nrow(corpus$meta), before, before - nrow(corpus$meta), 100 * (before - nrow(corpus$meta)) / before))
