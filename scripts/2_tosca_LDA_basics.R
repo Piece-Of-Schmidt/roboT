@@ -103,8 +103,8 @@ for(k in K_WERTE){
   # counts
   counts = plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = FALSE, unit = "quarter")
   counts_rel = plotTopic(object = tokenizedCorpus, ldaresult = result, ldaID = names(docs), rel = TRUE, unit = "quarter")
-  write.csv(counts, sprintf("K%d/counts_K%d_seed%d", k, k, seed))
-  write.csv(counts_rel, sprintf("K%d/countsrel_K%d_seed%d", k, k, seed))
+  write.csv(counts, sprintf("K%d/counts_K%d_seed%d.csv", k, k, seed))
+  write.csv(counts_rel, sprintf("K%d/countsrel_K%d_seed%d.csv", k, k, seed))
 
 }; message("files are stored in: ", getwd())
 
